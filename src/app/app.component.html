@@ -1,17 +1,31 @@
-<div id="foo">
-  <div *ngFor="let cell of cells" class="cell" [ngClass]="(cell.color==1)?'cell-white':'cell-black'"></div>
+<div #board id="foo">
+  <!-- <div class="piece" 
+    *ngFor="let piece of pieces" 
+    style="background-image: 
+      url(/assets/images/pieces/{{assetName(piece)}}.svg);">
+  </div> -->
+
+  <ng-container *ngFor="let row of position$ | async">
+    <ng-container *ngFor="let col of row">
+        <div *ngIf="col" class="piece"
+          style="background-image: 
+            url(/assets/images/pieces/{{assetName(col)}}.svg);
+            transform:{{translate(col)}}">
+      </div>
+    </ng-container>
+  </ng-container>
 </div>
 
 <style>
   #foo {
-    width: 400px;
-    height: 400px;
-    /* border: 1px solid black; */
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    grid-template-rows: repeat(8, 1fr);
-    gap: 0px 0px;
-    background-color: rgb(240, 217, 181);;
+    width: 100%;
+    max-width: 500px;
+    max-height: 500px;
+    background-image: url(/assets/images/board/board.svg);
+    background-repeat:no-repeat;
+    background-position: center;
+    background-size: contain;
+    position: relative;
   }
 
   .cell-white {
@@ -20,5 +34,14 @@
 
   .cell-black {
     background-color: rgb(181, 136, 99);
+  }
+
+  .piece {
+    width: 12.5%;
+    height: 12.5%;
+    background-repeat:no-repeat;
+    background-position: center;
+    background-size: contain;
+    position: absolute;
   }
 </style>
