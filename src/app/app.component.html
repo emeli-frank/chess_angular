@@ -1,31 +1,47 @@
-<div #board id="foo">
-  <ng-container *ngFor="let cells of position$ | async; let r=index">
-    <ng-container *ngFor="let piece of cells; let c=index">
-      <app-cell *ngIf="piece" (click)="select(piece, r, c)"
-        [empty]="false"
-        [row]="r"
-        [col]="c"
-        [pieceName]="piece.name"
-        [colorName]="piece.colorName"
-        [isSelected]="selected&&selected.r==r&&selected.c==c"
-      ></app-cell>
+<div class="container">
+  <div class="player-detail" [class.not-player-turn]="!players[1].hasTurn">
+    <div class="valid-move-indicator"></div>
+    <div class="player-name">player 2</div>
+    <div class="captured-pieces"></div>
+  </div>
 
-      <div *ngIf="!piece" (click)="move(r, c)" class="piece" style="transform:{{translate(r, c)}}"></div>
+  <div #board id="foo">
+    <ng-container *ngFor="let cells of position$ | async; let r=index">
+      <ng-container *ngFor="let piece of cells; let c=index">
+        <app-cell *ngIf="piece" (click)="select(piece, r, c)"
+          [empty]="false"
+          [row]="r"
+          [col]="c"
+          [pieceName]="piece.name"
+          [colorName]="piece.colorName"
+          [isSelected]="selected&&selected.r==r&&selected.c==c"
+        ></app-cell>
+  
+        <div *ngIf="!piece" (click)="move(r, c)" class="piece" style="transform:{{translate(r, c)}}"></div>
+      </ng-container>
     </ng-container>
-  </ng-container>
+  
+    <ng-container *ngFor="let validMove of validMoves">
+      <div class="piece foobar" [class.threatened]="false" style="transform:{{translate(validMove.r, validMove.c)}}">
+        <div class="valid-move-indicator"></div>
+      </div>
+    </ng-container>
+  </div>
 
-  <ng-container *ngFor="let validMove of validMoves">
-    <div class="piece foobar" [class.threatened]="false" style="transform:{{translate(validMove.r, validMove.c)}}">
-      <div class="valid-move-indicator"></div>
-    </div>
-  </ng-container>
+  <div class="player-detail" [class.not-player-turn]="!players[0].hasTurn">
+    <div class="valid-move-indicator"></div>
+    <div class="player-name">player 1</div>
+      <app-captured></app-captured>
+  </div>
 </div>
 
 <style>
-  #foo {
-    width: 100%;
+  .container {
     max-width: 500px;
     max-height: 500px;
+  }
+  #foo {
+    width: 100%;
     background-image: url(/assets/images/board/board.svg);
     background-repeat:no-repeat;
     background-position: center;
@@ -50,6 +66,10 @@
     border-radius: 8px;
   }
 
+  .player-detail.not-player-turn .valid-move-indicator {
+    background-color: rgba(0,0,0,0.12);
+  }
+
   .foobar {
     display: flex;
     align-items: center;
@@ -59,5 +79,21 @@
 
   .threatened {
     background: radial-gradient(transparent 0%, transparent 80%, rgba(20,85,0,0.3) 80%)
+  }
+
+  .player-detail {
+    height: 30px;
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+    padding: 16px 15px;
+  }
+
+  .player-name {
+    margin-left: 10px;
+    font-size: 18px;
+    font-family: sans-serif;
   }
 </style>

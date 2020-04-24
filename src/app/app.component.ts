@@ -1,11 +1,10 @@
 import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { Observable, BehaviorSubject, fromEvent } from 'rxjs';
-import { Piece, King, Queen, Rook, Knight, Bishop, Pawn } from './piece';
-import { Color } from './color';
+import { Piece } from './piece';
 import { pieces } from './pieces';
 import { Position } from './position';
-
-import { trigger, transition, animate, style } from '@angular/animations';
+import { Player } from './player';
+import { Color } from './color';
 
 @Component({
   selector: 'app-root',
@@ -21,6 +20,12 @@ export class AppComponent implements OnInit, AfterViewInit {
   validMoves: Position[] = [];
   // validMoves: Position[] = [new Position(0, 0), new Position(1, 1), new Position(2, 2), new Position(4, 2)];
   @ViewChild('board') board: ElementRef;
+  players: Player[] = [];
+
+  constructor() {
+    this.players.push(new Player(Color.white, true))
+    this.players.push(new Player(Color.black, false))
+  }
 
   ngAfterViewInit(): void {
     this.setBoardSize();
@@ -65,6 +70,18 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   select(piece: Piece, r: number, c: number) {
+    // ignore selection if play doesn't have turn
+    // alert(piece.color);
+    if (!this.players[piece.color].hasTurn) {
+      this.selected = null;
+      return;
+    }
+    /* if (this.players[0].hasTurn && piece.color != Color.white ||
+      this.players[1].hasTurn && piece.color != Color.black) {
+        this.selected = null;
+        return;
+    } */
+
     // if the same piece is already selected, deselect
     if (this.selected && piece == this.positionSubject.value[this.selected.r][this.selected.c]) {
       this.selected = null;
@@ -98,6 +115,17 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     this.selected = null;
     this.validMoves = [];
+
+    this.players[pieceToMove.color].hasTurn = false;
+    this.players[(pieceToMove.color + 1) % 2].hasTurn = true;
+
+    /* if (this.players[0].hasTurn) {
+      this.players[0].hasTurn = false;
+      this.players[1].hasTurn = true;
+    } else {
+      this.players[1].hasTurn = false;
+      this.players[0].hasTurn = true;
+    } */
   }
 
   canMove(piece: Piece, initialPos: Position, intendedPos: Position): boolean {

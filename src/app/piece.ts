@@ -1,9 +1,5 @@
 import { Position } from './position';
-
-enum Color {
-  white = 1,
-  black,
-}
+import { Color } from './color';
 
 export class Piece {
   color: Color
