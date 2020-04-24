@@ -3,28 +3,22 @@ import { Observable, BehaviorSubject, fromEvent } from 'rxjs';
 import { Piece, King, Queen, Rook, Knight, Bishop, Pawn } from './piece';
 import { Color } from './color';
 import { pieces } from './pieces';
+import { Position } from './position';
+
+import { trigger, transition, animate, style } from '@angular/animations';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnInit, AfterViewInit {
-  cells: Tile[] = [];
   private positionSubject: BehaviorSubject<Piece[][]>
   position$: Observable<Piece[][]>;
   pieces: Piece[];
   boardSize: number;
+  selected: Position;
   @ViewChild('board') board: ElementRef;
-
-  constructor() {
-    for (let i = 0; i < 8; i++) {
-      for (let j = 0; j < 8; j++) {
-        let tileColor = ((i + j) % 2) ? Color.black : Color.white;
-        this.cells.push(new Tile(tileColor));
-      }
-    }
-  }
 
   ngAfterViewInit(): void {
     this.setBoardSize();
@@ -48,7 +42,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.pieces = pieces;
 
     for (let piece of this.pieces) {
-      positions[piece.startingPosition.x][piece.startingPosition.y] = piece;
+      positions[piece.startingPosition.r][piece.startingPosition.c] = piece;
     }
 
     console.log(positions);
@@ -86,18 +80,73 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.board.nativeElement.style.height = `${offsetWidth}px`;
   }
 
-  translate(piece: Piece) {
-    return `translate(${piece.startingPosition.y * 100}%, ${piece.startingPosition.x * 100}%)`
+  translate(r: number, c: number) {
+    return `translate(${c * 100}%, ${r * 100}%)`
+  }
+
+  /* do(r: number, c: number) {
+    let subscription = this.position$.subscribe((position) => {
+      if (position[r][c]) {
+        this.select(new Position(r, c));
+        console.log("selected position: ", this.selected);
+      } else {
+        this.move();
+      }
+    })
+    // subscription.unsubscribe();
+    
+  } */
+
+  select(piece: Piece, r: number, c: number) {
+    console.log("selecting");
+    let position = new Position(r, c)
+    this.selected = position;
+  }
+
+  move(r: number, c: number) {
+    if (this.selected == null) {
+      return;
+    }
+
+    let pieceToMove: Piece = this.positionSubject.value[this.selected.r][this.selected.c];
+    console.log("piec is: ", pieceToMove);
+    if (!this.canMove(pieceToMove, this.selected, new Position(r, c))) {
+      this.selected = null;
+      return;
+    }
+
+    let newPosition: Piece[][] = this.positionSubject.value;
+    let temp = newPosition[this.selected.r][this.selected.c];
+    newPosition[this.selected.r][this.selected.c] = null;
+    newPosition[r][c] = temp;
+    this.positionSubject.next(newPosition);
+
+    this.selected = null;
+
+
+    // todo:: unselect as d last thing whether success or failure
+  }
+
+  canMove(piece: Piece, initialPos: Position, intendedPos: Position): boolean {
+    return piece.canMove(initialPos ,intendedPos, this.positionSubject.value);
+    /* if (piece instanceof King) {
+      if (
+        // move one step diagonally in any direction
+        Math.abs(initialPos.r - intendedPos.r) == 1 && Math.abs(initialPos.c - intendedPos.c) == 1 ||
+
+        // move one step to the left or right
+        Math.abs(initialPos.r - intendedPos.r) == 0 && Math.abs(initialPos.c - intendedPos.c) == 1 ||
+
+        // move one step to the top or bottom
+        Math.abs(initialPos.c - intendedPos.c) == 0 && Math.abs(initialPos.r - intendedPos.r) == 1 
+      ) {
+        return true
+      }
+      
+      return false;
+    } */
+
+    return true;
   }
 
 }
-
-class Tile {
-  color: Color;
-
-  constructor(color: Color) {
-    this.color = color;
-  }
-}
-
-

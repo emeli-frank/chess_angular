@@ -5,13 +5,23 @@
       url(/assets/images/pieces/{{assetName(piece)}}.svg);">
   </div> -->
 
-  <ng-container *ngFor="let row of position$ | async">
-    <ng-container *ngFor="let col of row">
-        <div *ngIf="col" class="piece"
+  <ng-container *ngFor="let cells of position$ | async; let r=index">
+    <ng-container *ngFor="let piece of cells; let c=index">
+        <!-- <div @foo *ngIf="col" (click)="select(r, c)" class="piece"
           style="background-image: 
             url(/assets/images/pieces/{{assetName(col)}}.svg);
-            transform:{{translate(col)}}">
-      </div>
+            transform:{{translate(r, c)}}">
+      </div> -->
+
+      <app-cell *ngIf="piece" (click)="select(piece, r, c)"
+        [empty]="false"
+        [row]="r"
+        [col]="c"
+        [pieceName]="piece.name"
+        [colorName]="piece.colorName"
+      ></app-cell>
+
+      <div *ngIf="!piece" (click)="move(r, c)" class="piece" style="transform:{{translate(r, c)}}"></div>
     </ng-container>
   </ng-container>
 </div>
@@ -28,14 +38,7 @@
     position: relative;
   }
 
-  .cell-white {
-    background-color: transparent;
-  }
-
-  .cell-black {
-    background-color: rgb(181, 136, 99);
-  }
-
+  /* still kept here because the empty cell needs to be styled */
   .piece {
     width: 12.5%;
     height: 12.5%;

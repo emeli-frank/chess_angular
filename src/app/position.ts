@@ -1,9 +1,9 @@
 export class Position {
-  x: number;
-  y: number;
+  r: number;
+  c: number;
 
-  constructor(x: number, y: number) {
-    this.x = x;
-    this.y = y;
+  constructor(r: number, c: number) {
+    this.r = r;
+    this.c = c;
   }
 }

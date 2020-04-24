@@ -1,0 +1,33 @@
+<!-- <div [@moveAnimation]="{params:{translateBefore:'translate(0,0), translateAfter:'translate(0,0)'}}" class="piece"
+    style="background-image:url({{assetName}});transform:{{translate}}">
+</div> -->
+
+<!-- <div 
+  [@moveAnimation]="{params:{translateBefore:'translate(0,0)', translateAfter:'translate(0,0)'}}" 
+  class="piece"
+  style="background-image:url({{assetName}});transform:{{translate}}">
+</div> -->
+
+<div 
+  class="piece"
+  style="background-image:url({{assetName}});transform:{{translate}}">
+</div>
+
+<style>
+  .cell-white {
+    background-color: transparent;
+  }
+
+  .cell-black {
+    background-color: rgb(181, 136, 99);
+  }
+
+  .piece {
+    width: 12.5%;
+    height: 12.5%;
+    background-repeat:no-repeat;
+    background-position: center;
+    background-size: contain;
+    position: absolute;
+  }
+</style>
