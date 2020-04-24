@@ -18,6 +18,8 @@ export class AppComponent implements OnInit, AfterViewInit {
   pieces: Piece[];
   boardSize: number;
   selected: Position;
+  validMoves: Position[] = [];
+  // validMoves: Position[] = [new Position(0, 0), new Position(1, 1), new Position(2, 2), new Position(4, 2)];
   @ViewChild('board') board: ElementRef;
 
   ngAfterViewInit(): void {
@@ -45,34 +47,12 @@ export class AppComponent implements OnInit, AfterViewInit {
       positions[piece.startingPosition.r][piece.startingPosition.c] = piece;
     }
 
-    console.log(positions);
-
     this.positionSubject = new BehaviorSubject<Piece[][]>(positions);
     this.position$ = this.positionSubject.asObservable();
-
-    // this.position$.subscribe((value) => console.log(value));
   }
 
-  assetName(piece: Piece): string {
-    let color: string;
-    let name: string;
-
-    color = (piece.color == 1) ? 'white' : 'black';
-    if (piece instanceof King) {
-      name = 'king';
-    } else if (piece instanceof Queen) {
-      name = 'queen';
-    } else if (piece instanceof Rook) {
-      name = 'rook'
-    } else if (piece instanceof Knight) {
-      name = 'knight';
-    } else if (piece instanceof Bishop) {
-      name = 'bishop';
-    } else if (piece instanceof Pawn) {
-      name = 'pawn';
-    }
-
-    return `${name}-${color}`;
+  get currentBoard(): Piece[][] {
+    return this.positionSubject.value;
   }
 
   setBoardSize() {
@@ -84,23 +64,17 @@ export class AppComponent implements OnInit, AfterViewInit {
     return `translate(${c * 100}%, ${r * 100}%)`
   }
 
-  /* do(r: number, c: number) {
-    let subscription = this.position$.subscribe((position) => {
-      if (position[r][c]) {
-        this.select(new Position(r, c));
-        console.log("selected position: ", this.selected);
-      } else {
-        this.move();
-      }
-    })
-    // subscription.unsubscribe();
-    
-  } */
-
   select(piece: Piece, r: number, c: number) {
+    // if the same piece is already selected, deselect
+    if (this.selected && piece == this.positionSubject.value[this.selected.r][this.selected.c]) {
+      this.selected = null;
+      this.validMoves = [];
+      return;
+    }
     console.log("selecting");
     let position = new Position(r, c)
     this.selected = position;
+    this.validMoves = piece.getValidPositions(new Position(r, c), this.positionSubject.value)
   }
 
   move(r: number, c: number) {
@@ -112,6 +86,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     console.log("piec is: ", pieceToMove);
     if (!this.canMove(pieceToMove, this.selected, new Position(r, c))) {
       this.selected = null;
+      this.validMoves = [];
       return;
     }
 
@@ -122,31 +97,11 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.positionSubject.next(newPosition);
 
     this.selected = null;
-
-
-    // todo:: unselect as d last thing whether success or failure
+    this.validMoves = [];
   }
 
   canMove(piece: Piece, initialPos: Position, intendedPos: Position): boolean {
     return piece.canMove(initialPos ,intendedPos, this.positionSubject.value);
-    /* if (piece instanceof King) {
-      if (
-        // move one step diagonally in any direction
-        Math.abs(initialPos.r - intendedPos.r) == 1 && Math.abs(initialPos.c - intendedPos.c) == 1 ||
-
-        // move one step to the left or right
-        Math.abs(initialPos.r - intendedPos.r) == 0 && Math.abs(initialPos.c - intendedPos.c) == 1 ||
-
-        // move one step to the top or bottom
-        Math.abs(initialPos.c - intendedPos.c) == 0 && Math.abs(initialPos.r - intendedPos.r) == 1 
-      ) {
-        return true
-      }
-      
-      return false;
-    } */
-
-    return true;
   }
 
 }

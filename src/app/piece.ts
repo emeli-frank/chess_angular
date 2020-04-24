@@ -41,6 +41,10 @@ export class Piece {
   canMove(initialPos: Position, intendedPos: Position, board: Piece[][]): boolean {
     return (this instanceof Pawn);
   }
+
+  getValidPositions(initialPos: Position, board: Piece[][]): Position[] {
+    return [];
+  }
 }
 
 export class King extends Piece {
@@ -49,6 +53,75 @@ export class King extends Piece {
   }
 
   canMove(initialPos: Position, intendedPos: Position, board: Piece[][]): boolean {
+    /* let legalPos: Position[] = [];
+    let testPos: Position;
+
+    testPos = new Position(initialPos.r - 1, initialPos.c - 1);
+    if (validPos(testPos, board, this.color)) {
+      legalPos.push(testPos);
+    }
+
+    testPos = new Position(initialPos.r - 1, initialPos.c);
+    if (validPos(testPos, board, this.color)) {
+      legalPos.push(testPos);
+    }
+
+    testPos = new Position(initialPos.r - 1, initialPos.c + 1);
+    if (validPos(testPos, board, this.color)) {
+      legalPos.push(testPos);
+    }
+
+    testPos = new Position(initialPos.r, initialPos.c - 1);
+    if (validPos(testPos, board, this.color)) {
+      legalPos.push(testPos);
+    }
+
+    testPos = new Position(initialPos.r, initialPos.c);
+    if (validPos(testPos, board, this.color)) {
+      legalPos.push(testPos);
+    }
+
+    testPos = new Position(initialPos.r, initialPos.c + 1);
+    if (validPos(testPos, board, this.color)) {
+      legalPos.push(testPos);
+    }
+
+    testPos = new Position(initialPos.r + 1, initialPos.c - 1);
+    if (validPos(testPos, board, this.color)) {
+      legalPos.push(testPos);
+    }
+
+    testPos = new Position(initialPos.r + 1, initialPos.c);
+    if (validPos(testPos, board, this.color)) {
+      legalPos.push(testPos);
+    }
+
+    testPos = new Position(initialPos.r + 1, initialPos.c + 1);
+    if (validPos(testPos, board, this.color)) {
+      legalPos.push(testPos);
+    }
+
+    console.log("legal positions:", legalPos); */
+
+    return inPositions(this.getValidPositions(initialPos, board), intendedPos);
+
+    /* if (
+      // move one step diagonally in any direction
+      Math.abs(initialPos.r - intendedPos.r) == 1 && Math.abs(initialPos.c - intendedPos.c) == 1 ||
+
+      // move one step to the left or right
+      Math.abs(initialPos.r - intendedPos.r) == 0 && Math.abs(initialPos.c - intendedPos.c) == 1 ||
+
+      // move one step to the top or bottom
+      Math.abs(initialPos.c - intendedPos.c) == 0 && Math.abs(initialPos.r - intendedPos.r) == 1 
+    ) {
+      return true
+    } */
+    
+    return false;
+  }
+
+  getValidPositions(initialPos: Position, board: Piece[][]): Position[] {
     let legalPos: Position[] = [];
     let testPos: Position;
 
@@ -97,24 +170,7 @@ export class King extends Piece {
       legalPos.push(testPos);
     }
 
-    console.log("legal positions:", legalPos);
-
-    return inPositions(legalPos, intendedPos);
-
-    /* if (
-      // move one step diagonally in any direction
-      Math.abs(initialPos.r - intendedPos.r) == 1 && Math.abs(initialPos.c - intendedPos.c) == 1 ||
-
-      // move one step to the left or right
-      Math.abs(initialPos.r - intendedPos.r) == 0 && Math.abs(initialPos.c - intendedPos.c) == 1 ||
-
-      // move one step to the top or bottom
-      Math.abs(initialPos.c - intendedPos.c) == 0 && Math.abs(initialPos.r - intendedPos.r) == 1 
-    ) {
-      return true
-    } */
-    
-    return false;
+    return legalPos
   }
 
 }

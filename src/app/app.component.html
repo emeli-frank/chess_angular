@@ -1,28 +1,23 @@
 <div #board id="foo">
-  <!-- <div class="piece" 
-    *ngFor="let piece of pieces" 
-    style="background-image: 
-      url(/assets/images/pieces/{{assetName(piece)}}.svg);">
-  </div> -->
-
   <ng-container *ngFor="let cells of position$ | async; let r=index">
     <ng-container *ngFor="let piece of cells; let c=index">
-        <!-- <div @foo *ngIf="col" (click)="select(r, c)" class="piece"
-          style="background-image: 
-            url(/assets/images/pieces/{{assetName(col)}}.svg);
-            transform:{{translate(r, c)}}">
-      </div> -->
-
       <app-cell *ngIf="piece" (click)="select(piece, r, c)"
         [empty]="false"
         [row]="r"
         [col]="c"
         [pieceName]="piece.name"
         [colorName]="piece.colorName"
+        [isSelected]="selected&&selected.r==r&&selected.c==c"
       ></app-cell>
 
       <div *ngIf="!piece" (click)="move(r, c)" class="piece" style="transform:{{translate(r, c)}}"></div>
     </ng-container>
+  </ng-container>
+
+  <ng-container *ngFor="let validMove of validMoves">
+    <div class="piece foobar" [class.threatened]="false" style="transform:{{translate(validMove.r, validMove.c)}}">
+      <div class="valid-move-indicator"></div>
+    </div>
   </ng-container>
 </div>
 
@@ -46,5 +41,23 @@
     background-position: center;
     background-size: contain;
     position: absolute;
+  }
+
+  .valid-move-indicator {
+    background-color: rgba(20,85,30,0.5);
+    height: 16px;
+    width: 16px;
+    border-radius: 8px;
+  }
+
+  .foobar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  .threatened {
+    background: radial-gradient(transparent 0%, transparent 80%, rgba(20,85,0,0.3) 80%)
   }
 </style>

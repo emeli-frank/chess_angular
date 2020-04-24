@@ -15,6 +15,7 @@ export class CellComponent implements OnInit {
   @Input() col: number;
   @Input() pieceName: number;
   @Input() colorName: string;
+  @Input() isSelected: boolean;
 
   constructor() { }
 
