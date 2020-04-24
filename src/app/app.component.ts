@@ -74,6 +74,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     // alert(piece.color);
     if (!this.players[piece.color].hasTurn) {
       this.selected = null;
+      this.validMoves = [];
       return;
     }
     /* if (this.players[0].hasTurn && piece.color != Color.white ||
@@ -100,7 +101,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     let pieceToMove: Piece = this.positionSubject.value[this.selected.r][this.selected.c];
-    console.log("piec is: ", pieceToMove);
     if (!this.canMove(pieceToMove, this.selected, new Position(r, c))) {
       this.selected = null;
       this.validMoves = [];

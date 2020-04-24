@@ -1,5 +1,6 @@
 import { Position } from './position';
 import { Color } from './color';
+import { empty } from 'rxjs';
 
 export class Piece {
   color: Color
@@ -49,72 +50,7 @@ export class King extends Piece {
   }
 
   canMove(initialPos: Position, intendedPos: Position, board: Piece[][]): boolean {
-    /* let legalPos: Position[] = [];
-    let testPos: Position;
-
-    testPos = new Position(initialPos.r - 1, initialPos.c - 1);
-    if (validPos(testPos, board, this.color)) {
-      legalPos.push(testPos);
-    }
-
-    testPos = new Position(initialPos.r - 1, initialPos.c);
-    if (validPos(testPos, board, this.color)) {
-      legalPos.push(testPos);
-    }
-
-    testPos = new Position(initialPos.r - 1, initialPos.c + 1);
-    if (validPos(testPos, board, this.color)) {
-      legalPos.push(testPos);
-    }
-
-    testPos = new Position(initialPos.r, initialPos.c - 1);
-    if (validPos(testPos, board, this.color)) {
-      legalPos.push(testPos);
-    }
-
-    testPos = new Position(initialPos.r, initialPos.c);
-    if (validPos(testPos, board, this.color)) {
-      legalPos.push(testPos);
-    }
-
-    testPos = new Position(initialPos.r, initialPos.c + 1);
-    if (validPos(testPos, board, this.color)) {
-      legalPos.push(testPos);
-    }
-
-    testPos = new Position(initialPos.r + 1, initialPos.c - 1);
-    if (validPos(testPos, board, this.color)) {
-      legalPos.push(testPos);
-    }
-
-    testPos = new Position(initialPos.r + 1, initialPos.c);
-    if (validPos(testPos, board, this.color)) {
-      legalPos.push(testPos);
-    }
-
-    testPos = new Position(initialPos.r + 1, initialPos.c + 1);
-    if (validPos(testPos, board, this.color)) {
-      legalPos.push(testPos);
-    }
-
-    console.log("legal positions:", legalPos); */
-
     return inPositions(this.getValidPositions(initialPos, board), intendedPos);
-
-    /* if (
-      // move one step diagonally in any direction
-      Math.abs(initialPos.r - intendedPos.r) == 1 && Math.abs(initialPos.c - intendedPos.c) == 1 ||
-
-      // move one step to the left or right
-      Math.abs(initialPos.r - intendedPos.r) == 0 && Math.abs(initialPos.c - intendedPos.c) == 1 ||
-
-      // move one step to the top or bottom
-      Math.abs(initialPos.c - intendedPos.c) == 0 && Math.abs(initialPos.r - intendedPos.r) == 1 
-    ) {
-      return true
-    } */
-    
-    return false;
   }
 
   getValidPositions(initialPos: Position, board: Piece[][]): Position[] {
@@ -175,11 +111,93 @@ export class Queen extends Piece {
   constructor(color: Color, startingPosition: Position) {
     super(color, startingPosition)
   }
+
+  getValidPositions(initialPos: Position, board: Piece[][]): Position[] {
+    let legalPos: Position[] = [];
+    let testPos: Position;
+
+    let b = new Bishop(this.color, null);
+    let bPos = b.getValidPositions(initialPos, board);
+    let r = new Rook(this.color, null);
+    let rPos = r.getValidPositions(initialPos, board);
+
+    legalPos = bPos.concat(rPos);
+
+    return legalPos;
+  }
+
+  canMove(initialPos: Position, intendedPos: Position, board: Piece[][]): boolean {
+    return inPositions(this.getValidPositions(initialPos, board), intendedPos);
+  }
 }
 
 export class Rook extends Piece {
   constructor(color: Color, startingPosition: Position) {
     super(color, startingPosition)
+  }
+
+  getValidPositions(initialPos: Position, board: Piece[][]): Position[] {
+    let legalPos: Position[] = [];
+    let testPos: Position;
+
+    for (let i = 1; i <= 8; i++) {
+      testPos = new Position(initialPos.r, initialPos.c - i);
+      let foobar = foo(testPos, board, this.color);
+      if (foobar == bar.empty) {
+        legalPos.push(testPos);
+      } else if (foobar == bar.enemy) {
+        legalPos.push(testPos);
+        break;
+      } else if (foobar == bar.outOfBound || bar.friendly) {
+        break;
+      }
+    }
+
+    for (let i = 1; i <= 8; i++) {
+      testPos = new Position(initialPos.r, initialPos.c + i);
+      let foobar = foo(testPos, board, this.color);
+      console.warn("cell status: ", baz(foobar));
+      if (foobar == bar.empty) {
+        legalPos.push(testPos);
+      } else if (foobar == bar.enemy) {
+        legalPos.push(testPos);
+        break;
+      } else if (foobar == bar.outOfBound || bar.friendly) {
+        break;
+      }
+    }
+
+    for (let i = 1; i <= 8; i++) {
+      testPos = new Position(initialPos.r - i, initialPos.c);
+      let foobar = foo(testPos, board, this.color);
+      if (foobar == bar.empty) {
+        legalPos.push(testPos);
+      } else if (foobar == bar.enemy) {
+        legalPos.push(testPos);
+        break;
+      } else if (foobar == bar.outOfBound || bar.friendly) {
+        break;
+      }
+    }
+
+    for (let i = 1; i <= 8; i++) {
+      testPos = new Position(initialPos.r + i, initialPos.c);
+      let foobar = foo(testPos, board, this.color);
+      if (foobar == bar.empty) {
+        legalPos.push(testPos);
+      } else if (foobar == bar.enemy) {
+        legalPos.push(testPos);
+        break;
+      } else if (foobar == bar.outOfBound || bar.friendly) {
+        break;
+      }
+    }
+
+    return legalPos;
+  }
+
+  canMove(initialPos: Position, intendedPos: Position, board: Piece[][]): boolean {
+    return inPositions(this.getValidPositions(initialPos, board), intendedPos);
   }
 }
 
@@ -187,11 +205,126 @@ export class Knight extends Piece {
   constructor(color: Color, startingPosition: Position) {
     super(color, startingPosition)
   }
+
+  getValidPositions(initialPos: Position, board: Piece[][]): Position[] {
+    let legalPos: Position[] = [];
+    let testPos: Position;
+
+    testPos = new Position(initialPos.r - 2, initialPos.c - 1);
+    if (validPos(testPos, board, this.color)) {
+      legalPos.push(testPos);
+    }
+
+    testPos = new Position(initialPos.r - 2, initialPos.c + 1);
+    if (validPos(testPos, board, this.color)) {
+      legalPos.push(testPos);
+    }
+
+    testPos = new Position(initialPos.r - 1, initialPos.c - 2);
+    if (validPos(testPos, board, this.color)) {
+      legalPos.push(testPos);
+    }
+
+    testPos = new Position(initialPos.r - 1, initialPos.c + 2);
+    if (validPos(testPos, board, this.color)) {
+      legalPos.push(testPos);
+    }
+
+    testPos = new Position(initialPos.r + 2, initialPos.c + 1);
+    if (validPos(testPos, board, this.color)) {
+      legalPos.push(testPos);
+    }
+
+    testPos = new Position(initialPos.r + 2, initialPos.c - 1);
+    if (validPos(testPos, board, this.color)) {
+      legalPos.push(testPos);
+    }
+
+    testPos = new Position(initialPos.r + 1, initialPos.c + 2);
+    if (validPos(testPos, board, this.color)) {
+      legalPos.push(testPos);
+    }
+
+    testPos = new Position(initialPos.r + 1, initialPos.c - 2);
+    if (validPos(testPos, board, this.color)) {
+      legalPos.push(testPos);
+    }
+
+    return legalPos;
+  }
+
+  canMove(initialPos: Position, intendedPos: Position, board: Piece[][]): boolean {
+    return inPositions(this.getValidPositions(initialPos, board), intendedPos);
+  }
 }
 
 export class Bishop extends Piece {
   constructor(color: Color, startingPosition: Position) {
     super(color, startingPosition)
+  }
+
+  getValidPositions(initialPos: Position, board: Piece[][]): Position[] {
+    let legalPos: Position[] = [];
+    let testPos: Position;
+
+    for (let i = 1; i <= 8; i++) {
+      testPos = new Position(initialPos.r - i, initialPos.c - i);
+      let foobar = foo(testPos, board, this.color);
+      if (foobar == bar.empty) {
+        legalPos.push(testPos);
+      } else if (foobar == bar.enemy) {
+        legalPos.push(testPos);
+        break;
+      } else if (foobar == bar.outOfBound || bar.friendly) {
+        break;
+      }
+    }
+
+    for (let i = 1; i <= 8; i++) {
+      testPos = new Position(initialPos.r - i, initialPos.c + i);
+      let foobar = foo(testPos, board, this.color);
+      console.warn("cell status: ", baz(foobar));
+      if (foobar == bar.empty) {
+        legalPos.push(testPos);
+      } else if (foobar == bar.enemy) {
+        legalPos.push(testPos);
+        break;
+      } else if (foobar == bar.outOfBound || bar.friendly) {
+        break;
+      }
+    }
+
+    for (let i = 1; i <= 8; i++) {
+      testPos = new Position(initialPos.r + i, initialPos.c - i);
+      let foobar = foo(testPos, board, this.color);
+      if (foobar == bar.empty) {
+        legalPos.push(testPos);
+      } else if (foobar == bar.enemy) {
+        legalPos.push(testPos);
+        break;
+      } else if (foobar == bar.outOfBound || bar.friendly) {
+        break;
+      }
+    }
+
+    for (let i = 1; i <= 8; i++) {
+      testPos = new Position(initialPos.r + i, initialPos.c + i);
+      let foobar = foo(testPos, board, this.color);
+      if (foobar == bar.empty) {
+        legalPos.push(testPos);
+      } else if (foobar == bar.enemy) {
+        legalPos.push(testPos);
+        break;
+      } else if (foobar == bar.outOfBound || bar.friendly) {
+        break;
+      }
+    }
+
+    return legalPos;
+  }
+
+  canMove(initialPos: Position, intendedPos: Position, board: Piece[][]): boolean {
+    return inPositions(this.getValidPositions(initialPos, board), intendedPos);
   }
 }
 
@@ -223,4 +356,52 @@ function inPositions(positions: Position[], position: Position): boolean {
   }
 
   return false;
+}
+
+function withinBound(position: Position): boolean {
+  if ((position.r < 0 || position.r > 7 || position.c < 0 || position.c > 7)) {
+    return false
+  }
+
+  return true;
+}
+
+function foo(position: Position, board: Piece[][], color: Color): bar {
+  if (!withinBound(position)) {
+    return bar.outOfBound;
+  }
+
+  if (board[position.r][position.c] && board[position.r][position.c].color == color) {
+    return bar.friendly;
+  }
+
+  if (board[position.r][position.c] && board[position.r][position.c].color != color) {
+    return bar.enemy;
+  }
+
+  return bar.empty;
+}
+
+enum bar {
+  empty,
+  enemy,
+  outOfBound,
+  friendly,
+}
+
+function baz(e: bar): string {
+  switch (e) {
+    case 0:
+      return "empty";
+    break;
+    case 2:
+      return "enemy";
+    break;
+    case 3:
+      return "out of bound"
+    break;
+    case 4: 
+      return "friendly";
+    break;
+  }
 }
