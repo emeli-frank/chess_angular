@@ -156,7 +156,6 @@ export class Rook extends Piece {
     for (let i = 1; i <= 8; i++) {
       testPos = new Position(initialPos.r, initialPos.c + i);
       let foobar = foo(testPos, board, this.color);
-      console.warn("cell status: ", baz(foobar));
       if (foobar == bar.empty) {
         legalPos.push(testPos);
       } else if (foobar == bar.enemy) {
@@ -283,7 +282,6 @@ export class Bishop extends Piece {
     for (let i = 1; i <= 8; i++) {
       testPos = new Position(initialPos.r - i, initialPos.c + i);
       let foobar = foo(testPos, board, this.color);
-      console.warn("cell status: ", baz(foobar));
       if (foobar == bar.empty) {
         legalPos.push(testPos);
       } else if (foobar == bar.enemy) {
@@ -329,14 +327,89 @@ export class Bishop extends Piece {
 }
 
 export class Pawn extends Piece {
+  hasMoved: boolean = false;
+  moveTwiceInFirstMove: boolean = false;
+
   constructor(color: Color, startingPosition: Position) {
     super(color, startingPosition)
+  }
+
+  getValidPositions(initialPos: Position, board: Piece[][]): Position[] {
+    let legalPos: Position[] = [];
+    let testPos: Position;
+    let foobar: bar;
+
+    if (this.color == Color.white) {
+      testPos = new Position(initialPos.r - 1, initialPos.c - 1);
+      foobar = foo(testPos, board, this.color);
+      if (foobar == bar.enemy) {
+        legalPos.push(testPos);
+      } else if (foobar == bar.empty || foobar == bar.outOfBound || bar.friendly) {
+        // do nothing;
+      }
+
+      testPos = new Position(initialPos.r - 1, initialPos.c + 1);
+      foobar = foo(testPos, board, this.color);
+      if (foobar == bar.enemy) {
+        legalPos.push(testPos);
+      } else if (foobar == bar.empty || foobar == bar.outOfBound || bar.friendly) {
+        // do nothing;
+      }
+
+      for (let i = 1; i <= 2; i++) {
+        testPos = new Position(initialPos.r - i, initialPos.c);
+        foobar = foo(testPos, board, this.color);
+        if (foobar == bar.empty) {
+          if (i > 1 && this.hasMoved) {
+            break;
+          }
+          legalPos.push(testPos);
+        } else if (foobar == bar.enemy || foobar == bar.outOfBound || bar.friendly) {
+          break;
+        }
+      }
+    } else {
+      testPos = new Position(initialPos.r + 1, initialPos.c - 1);
+      foobar = foo(testPos, board, this.color);
+      if (foobar == bar.enemy) {
+        legalPos.push(testPos);
+      } else if (foobar == bar.empty || foobar == bar.outOfBound || bar.friendly) {
+        // do nothing;
+      }
+
+      testPos = new Position(initialPos.r + 1, initialPos.c + 1);
+      foobar = foo(testPos, board, this.color);
+      if (foobar == bar.enemy) {
+        legalPos.push(testPos);
+      } else if (foobar == bar.empty || foobar == bar.outOfBound || bar.friendly) {
+        // do nothing;
+      }
+
+      for (let i = 1; i <= 2; i++) {
+        testPos = new Position(initialPos.r + i, initialPos.c);
+        foobar = foo(testPos, board, this.color);
+        if (foobar == bar.empty) {
+          if (i > 1 && this.hasMoved) {
+            break;
+          }
+          legalPos.push(testPos);
+        } else if (foobar == bar.enemy || foobar == bar.outOfBound || bar.friendly) {
+          break;
+        }
+      }
+    }
+
+    return legalPos;
+  }
+
+  canMove(initialPos: Position, intendedPos: Position, board: Piece[][]): boolean {
+    return inPositions(this.getValidPositions(initialPos, board), intendedPos);
   }
 }
 
 function validPos(position: Position, board: Piece[][], color: Color): boolean {
-  if ((position.r < 0 || position.r > 7 || position.c < 0 || position.c > 7)) {
-    return false
+  if (!withinBound(position)) {
+    return false;
   }
 
   // this is done separately to avoid errors when position.r and position.c are negative numbers

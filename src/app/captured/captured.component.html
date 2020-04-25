@@ -1,5 +1,5 @@
 <div class="captured">
-    <div style="background-image: url(/assets/images/pieces/king-black.svg);"></div>
+    <div *ngFor="let piece of captured" style="background-image: url({{assetName(piece)}});"></div>
 </div>
 
 <style>
@@ -10,8 +10,8 @@
 }
 
 .captured > div {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
     background-repeat: no-repeat;
     background-size: contain;
     background-position: center;

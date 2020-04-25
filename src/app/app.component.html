@@ -1,8 +1,14 @@
 <div class="container">
-  <div class="player-detail" [class.not-player-turn]="!players[1].hasTurn">
+  <!-- <div class="player-detail" [class.not-player-turn]="!players[1].hasTurn">
     <div class="valid-move-indicator"></div>
     <div class="player-name">player 2</div>
     <div class="captured-pieces"></div>
+  </div> -->
+
+  <div class="player-detail" [class.not-player-turn]="!players[1].hasTurn">
+    <div class="valid-move-indicator"></div>
+    <div class="player-name">player 2</div>
+      <app-captured [captured]="capturedPieces" [type]="1"></app-captured>
   </div>
 
   <div #board id="foo">
@@ -31,7 +37,7 @@
   <div class="player-detail" [class.not-player-turn]="!players[0].hasTurn">
     <div class="valid-move-indicator"></div>
     <div class="player-name">player 1</div>
-      <app-captured></app-captured>
+      <app-captured [captured]="capturedPieces" [type]="0"></app-captured>
   </div>
 </div>
 
@@ -95,5 +101,6 @@
     margin-left: 10px;
     font-size: 18px;
     font-family: sans-serif;
+    white-space: nowrap;
   }
 </style>
