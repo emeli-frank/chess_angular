@@ -14,7 +14,7 @@
   <div #board id="foo">
     <ng-container *ngFor="let cells of position$ | async; let r=index">
       <ng-container *ngFor="let piece of cells; let c=index">
-        <app-cell *ngIf="piece" (click)="select(piece, r, c)"
+        <app-cell *ngIf="piece" (click)="pieceClicked(piece, r, c)"
           [empty]="false"
           [row]="r"
           [col]="c"
@@ -23,7 +23,7 @@
           [isSelected]="selected&&selected.r==r&&selected.c==c"
         ></app-cell>
   
-        <div *ngIf="!piece" (click)="move(r, c)" class="piece" style="transform:{{translate(r, c)}}"></div>
+        <div *ngIf="!piece" (click)="emptyCellClicked(r, c)" class="piece" style="transform:{{translate(r, c)}}"></div>
       </ng-container>
     </ng-container>
   
@@ -40,67 +40,3 @@
       <app-captured [captured]="capturedPieces" [type]="0"></app-captured>
   </div>
 </div>
-
-<style>
-  .container {
-    max-width: 500px;
-    max-height: 500px;
-  }
-  #foo {
-    width: 100%;
-    background-image: url(/assets/images/board/board.svg);
-    background-repeat:no-repeat;
-    background-position: center;
-    background-size: contain;
-    position: relative;
-  }
-
-  /* still kept here because the empty cell needs to be styled */
-  .piece {
-    width: 12.5%;
-    height: 12.5%;
-    background-repeat:no-repeat;
-    background-position: center;
-    background-size: contain;
-    position: absolute;
-  }
-
-  .valid-move-indicator {
-    background-color: rgba(20,85,30,0.5);
-    height: 16px;
-    width: 16px;
-    border-radius: 8px;
-  }
-
-  .player-detail.not-player-turn .valid-move-indicator {
-    background-color: rgba(0,0,0,0.12);
-  }
-
-  .foobar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-  }
-
-  .threatened {
-    background: radial-gradient(transparent 0%, transparent 80%, rgba(20,85,0,0.3) 80%)
-  }
-
-  .player-detail {
-    height: 30px;
-    border: 1px solid rgba(0,0,0,0.12);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    margin: 10px 0;
-    padding: 16px 15px;
-  }
-
-  .player-name {
-    margin-left: 10px;
-    font-size: 18px;
-    font-family: sans-serif;
-    white-space: nowrap;
-  }
-</style>

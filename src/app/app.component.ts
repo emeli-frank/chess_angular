@@ -59,19 +59,23 @@ export class AppComponent implements AfterViewInit {
     return this.positionSubject.value;
   }
 
-  setBoardSize() {
+  private setBoardSize() {
     let offsetWidth = this.board.nativeElement.offsetWidth;
     this.board.nativeElement.style.height = `${offsetWidth}px`;
   }
 
-  translate(r: number, c: number) {
+  translate(r: number, c: number): string {
     return `translate(${c * 100}%, ${r * 100}%)`
   }
 
-  select(piece: Piece, r: number, c: number) {
-    // capturing oponents piece
-    if (!this.players[piece.color].hasTurn && 
-      this.positionSubject.value[this.selected.r][this.selected.c].color != piece.color) {
+  // this method is called when a piece that has turn is clicks
+  pieceClicked(piece: Piece, r: number, c: number) {
+    /* 
+     * capturing oponents piece 
+     */
+    if (!this.players[piece.color].hasTurn &&  // owner of the clicked piece does not have turn
+      this.selected != null // a piece is selected
+      ) {
       this.capture(r,c);
       this.selected = null;
       this.validMoves = [];
@@ -81,7 +85,7 @@ export class AppComponent implements AfterViewInit {
       return;
     }
 
-    // ignore selection if play doesn't have turn
+    // ignore selection if player doesn't have turn
     if (!this.players[piece.color].hasTurn) {
       this.selected = null;
       this.validMoves = [];
@@ -94,19 +98,14 @@ export class AppComponent implements AfterViewInit {
       this.validMoves = [];
       return;
     }
-    console.log("selecting");
+
     let position = new Position(r, c)
     this.selected = position;
     this.validMoves = piece.getValidPositions(new Position(r, c), this.positionSubject.value)
   }
 
   // this method is called when player clicks on an empty cell
-  move(r: number, c: number) {
-    // if no piece is selected just return, this should not happen
-    if (this.selected == null) {
-      return;
-    }
-
+  emptyCellClicked(r: number, c: number) {
     // get piece to move, if it cannot be moved, return and reset selected and valid moves
     let pieceToMove: Piece = this.positionSubject.value[this.selected.r][this.selected.c];
     if (!this.canMove(pieceToMove, this.selected, new Position(r, c))) {
@@ -115,29 +114,14 @@ export class AppComponent implements AfterViewInit {
       return;
     }
 
-    /* let pos: Piece[][] = this.positionSubject.value;
-    let temp = pos[this.selected.r][this.selected.c];
-    pos[this.selected.r][this.selected.c] = null;
-    pos[r][c] = temp;
-    this.positionSubject.next(pos); */
-
     let pos: Piece[][] = this.positionSubject.value;
     let p1 = pos[r][c];
     let p2 = pos[this.selected.r][this.selected.c];
     pos[r][c] = p2;
-    pos[this.selected.r][this.selected.c] = p1;
+    pos[this.selected.r][this.selected.c] = p1; // p1 is null
     this.positionSubject.next(pos);
 
-    // TODO:: move this to the piece or pawn class
-    if (p2 instanceof Pawn) {
-      // TODO:: move this to the piece or pawn class
-      // check if pawn jumpled 2 squares
-      if (!p2.hasMoved && Math.abs(r - this.selected.r) == 2) {
-        p2.moveTwiceInFirstMove = true;
-      }
-
-      p2.hasMoved = true;
-    }
+    p2.onMove(this.selected, new Position(r, c));
 
     this.selected = null;
     this.validMoves = [];
@@ -146,11 +130,11 @@ export class AppComponent implements AfterViewInit {
     this.players[(pieceToMove.color + 1) % 2].hasTurn = true;
   }
 
-  canMove(piece: Piece, initialPos: Position, intendedPos: Position): boolean {
+  private canMove(piece: Piece, initialPos: Position, intendedPos: Position): boolean {
     return piece.canMove(initialPos ,intendedPos, this.positionSubject.value);
   }
 
-  capture(r: number, c: number) {
+  private capture(r: number, c: number) {
     // get piece to move, if it cannot be moved, return and reset selected and valid moves
     let pieceToMove: Piece = this.positionSubject.value[this.selected.r][this.selected.c];
     if (!this.canMove(pieceToMove, this.selected, new Position(r, c))) {

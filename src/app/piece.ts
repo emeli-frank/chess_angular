@@ -2,7 +2,7 @@ import { Position } from './position';
 import { Color } from './color';
 import { empty } from 'rxjs';
 
-export class Piece {
+export abstract class Piece {
   color: Color
   startingPosition: Position;
 
@@ -35,12 +35,19 @@ export class Piece {
     return (this.color == Color.black) ? 'black' : 'white';
   }
 
-  canMove(initialPos: Position, intendedPos: Position, board: Piece[][]): boolean {
-    return (this instanceof Pawn);
-  }
+  abstract canMove(initialPos: Position, intendedPos: Position, board: Piece[][]): boolean;
 
-  getValidPositions(initialPos: Position, board: Piece[][]): Position[] {
-    return [];
+  abstract getValidPositions(initialPos: Position, board: Piece[][]): Position[];
+
+  onMove(from: Position, to: Position) {
+    if (this instanceof Pawn) {
+      // check if pawn moved and if it jumpled 2 squares and set approprait flags
+      if (!this.hasMoved && Math.abs(to.r - from.r) == 2) {
+        this.moveTwiceInFirstMove = true;
+      }
+
+      this.hasMoved = true;
+    }
   }
 }
 
