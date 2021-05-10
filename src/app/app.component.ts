@@ -1,7 +1,7 @@
 import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { Observable, BehaviorSubject, fromEvent } from 'rxjs';
 import { Piece, Pawn } from './piece';
-import { pieces } from './pieces';
+import { allPieces } from './pieces';
 import { Position } from './position';
 import { Player } from './player';
 import { Color } from './color';
@@ -11,10 +11,10 @@ import { Color } from './color';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
-export class AppComponent implements OnInit, AfterViewInit {
+export class AppComponent implements AfterViewInit {
   private positionSubject: BehaviorSubject<Piece[][]>
   position$: Observable<Piece[][]>;
-  pieces: Piece[];
+  allPieces: Piece[];
   boardSize: number;
   selected: Position;
   validMoves: Position[] = [];
@@ -26,16 +26,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   constructor() {
     this.players.push(new Player(Color.white, true))
     this.players.push(new Player(Color.black, false))
-  }
 
-  ngAfterViewInit(): void {
-    this.setBoardSize();
-    fromEvent(window, 'resize').subscribe((evt: any) => {
-      this.setBoardSize();
-    });
-  }
-
-  ngOnInit(): void {
     let positions: Piece[][] = [
       [null, null, null, null, null, null, null, null],
       [null, null, null, null, null, null, null, null],
@@ -47,14 +38,21 @@ export class AppComponent implements OnInit, AfterViewInit {
       [null, null, null, null, null, null, null, null],
     ];
 
-    this.pieces = pieces;
+    this.allPieces = allPieces;
 
-    for (let piece of this.pieces) {
+    for (let piece of this.allPieces) {
       positions[piece.startingPosition.r][piece.startingPosition.c] = piece;
     }
 
     this.positionSubject = new BehaviorSubject<Piece[][]>(positions);
     this.position$ = this.positionSubject.asObservable();
+  }
+
+  ngAfterViewInit(): void {
+    this.setBoardSize();
+    fromEvent(window, 'resize').subscribe((evt: any) => {
+      this.setBoardSize();
+    });
   }
 
   get currentBoard(): Piece[][] {
@@ -102,6 +100,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.validMoves = piece.getValidPositions(new Position(r, c), this.positionSubject.value)
   }
 
+  // this method is called when player clicks on an empty cell
   move(r: number, c: number) {
     // if no piece is selected just return, this should not happen
     if (this.selected == null) {
@@ -131,11 +130,13 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     // TODO:: move this to the piece or pawn class
     if (p2 instanceof Pawn) {
+      // TODO:: move this to the piece or pawn class
+      // check if pawn jumpled 2 squares
+      if (!p2.hasMoved && Math.abs(r - this.selected.r) == 2) {
+        p2.moveTwiceInFirstMove = true;
+      }
+
       p2.hasMoved = true;
-    }
-    // TODO:: move this to the piece or pawn class
-    if (p2 instanceof Pawn && Math.abs(r - this.select.r) ==2) {
-      p2.moveTwiceInFirstMove = true;
     }
 
     this.selected = null;

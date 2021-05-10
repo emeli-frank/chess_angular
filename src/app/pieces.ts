@@ -3,7 +3,7 @@ import { Position } from './position'
 import { King, Queen, Piece, Rook, Knight, Bishop, Pawn } from './piece'
 import { Color } from './color'
 
-export const pieces: Piece[] = [
+export const allPieces: Piece[] = [
   new King(Color.black, new Position(0, 4)),
   new Queen(Color.black, new Position(0, 3)),
   new Rook(Color.black, new Position(0, 0)),
