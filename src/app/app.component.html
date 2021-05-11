@@ -5,14 +5,14 @@
     <div class="captured-pieces"></div>
   </div> -->
 
-  <div class="player-detail" [class.not-player-turn]="!players[1].hasTurn">
+  <div class="player-detail" [class.not-player-turn]="!game.players[1].hasTurn">
     <div class="valid-move-indicator"></div>
     <div class="player-name">player 2</div>
-      <app-captured [captured]="capturedPieces" [type]="1"></app-captured>
+      <app-captured [captured]="game.capturedPieces" [type]="1"></app-captured>
   </div>
 
   <div #board id="foo">
-    <ng-container *ngFor="let cells of position$ | async; let r=index">
+    <ng-container *ngFor="let cells of game.positions; let r=index">
       <ng-container *ngFor="let piece of cells; let c=index">
         <app-cell *ngIf="piece" (click)="onPieceClicked(piece, r, c)"
           [empty]="false"
@@ -27,16 +27,16 @@
       </ng-container>
     </ng-container>
   
-    <ng-container *ngFor="let validMove of validMoves">
+    <ng-container *ngFor="let validMove of game.validMoves">
       <div class="piece foobar" [class.threatened]="false" style="transform:{{translate(validMove.r, validMove.c)}}">
         <div class="valid-move-indicator"></div>
       </div>
     </ng-container>
   </div>
 
-  <div class="player-detail" [class.not-player-turn]="!players[0].hasTurn">
+  <div class="player-detail" [class.not-player-turn]="!game.players[0].hasTurn">
     <div class="valid-move-indicator"></div>
     <div class="player-name">player 1</div>
-      <app-captured [captured]="capturedPieces" [type]="0"></app-captured>
+      <app-captured [captured]="game.capturedPieces" [type]="0"></app-captured>
   </div>
 </div>

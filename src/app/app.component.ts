@@ -5,6 +5,7 @@ import { allPieces } from './pieces';
 import { Position } from './position';
 import { Player } from './player';
 import { Color } from './color';
+import { Game } from './game';
 
 @Component({
   selector: 'app-root',
@@ -12,20 +13,23 @@ import { Color } from './color';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements AfterViewInit {
-  private positionSubject: BehaviorSubject<Piece[][]>
-  position$: Observable<Piece[][]>;
-  allPieces: Piece[];
+  game: Game;
+  // private positionSubject: BehaviorSubject<Piece[][]>
+  // position$: Observable<Piece[][]>;
+  // allPieces: Piece[];
   boardSize: number;
-  selected: Position;
-  validMoves: Position[] = [];
+  // selected: Position;
+  // validMoves: Position[] = [];
   // validMoves: Position[] = [new Position(0, 0), new Position(1, 1), new Position(2, 2), new Position(4, 2)];
   @ViewChild('board') board: ElementRef;
-  players: Player[] = [];
-  capturedPieces: Piece[] = [];
-  lastMovedPieceId: number;
+  // players: Player[] = [];
+  // capturedPieces: Piece[] = [];
+  // lastMovedPieceId: number;
 
   constructor() {
-    this.players.push(new Player(Color.white, true))
+    this.game = new Game(allPieces);
+
+    /* this.players.push(new Player(Color.white, true))
     this.players.push(new Player(Color.black, false))
 
     let positions: Piece[][] = [
@@ -46,7 +50,7 @@ export class AppComponent implements AfterViewInit {
     }
 
     this.positionSubject = new BehaviorSubject<Piece[][]>(positions);
-    this.position$ = this.positionSubject.asObservable();
+    this.position$ = this.positionSubject.asObservable(); */
   }
 
   ngAfterViewInit(): void {
@@ -54,11 +58,12 @@ export class AppComponent implements AfterViewInit {
     fromEvent(window, 'resize').subscribe((evt: any) => {
       this.setBoardSize();
     });
+    console.log(this.game);
   }
 
-  get currentBoard(): Piece[][] {
+  /* get currentBoard(): Piece[][] {
     return this.positionSubject.value;
-  }
+  } */
 
   private setBoardSize() {
     let offsetWidth = this.board.nativeElement.offsetWidth;
@@ -74,44 +79,44 @@ export class AppComponent implements AfterViewInit {
     /* 
      * capturing oponents piece 
      */
-    if (!this.players[piece.color].hasTurn &&  // owner of the clicked piece does not have turn
-      this.selected != null // a piece is selected
+    if (!this.game.players[piece.color].hasTurn &&  // owner of the clicked piece does not have turn
+      this.game.selected != null // a piece is selected
       ) {
       this.capture(r,c);
-      this.selected = null;
-      this.validMoves = [];
+      this.game.selected = null;
+      this.game.validMoves = [];
 
-      this.players[piece.color].hasTurn = true;
-      this.players[(piece.color + 1) % 2].hasTurn = false;
+      this.game.players[piece.color].hasTurn = true;
+      this.game.players[(piece.color + 1) % 2].hasTurn = false;
       return;
     }
 
     // ignore selection if player doesn't have turn
-    if (!this.players[piece.color].hasTurn) {
-      this.selected = null;
-      this.validMoves = [];
+    if (!this.game.players[piece.color].hasTurn) {
+      this.game.selected = null;
+      this.game.validMoves = [];
       return;
     }
 
     // if the same piece is already selected, deselect
-    if (this.selected && piece == this.positionSubject.value[this.selected.r][this.selected.c]) {
-      this.selected = null;
-      this.validMoves = [];
+    if (this.game.selected && piece == this.game.positions[this.game.selected.r][this.game.selected.c]) {
+      this.game.selected = null;
+      this.game.validMoves = [];
       return;
     }
 
     let position = new Position(r, c)
-    this.selected = position;
-    this.validMoves = piece.getValidPositions(new Position(r, c), this.positionSubject.value)
+    this.game.selected = position;
+    this.game.validMoves = piece.getValidPositions(new Position(r, c), this.game.positions)
   }
 
   // this method is called when player clicks on an empty cell
   onEmptyCellClicked(r: number, c: number) {
     // get piece to move, if it cannot be moved, return and reset selected and valid moves
-    let pieceToMove: Piece = this.positionSubject.value[this.selected.r][this.selected.c];
-    if (!this.canMove(pieceToMove, this.selected, new Position(r, c))) {
-      this.selected = null;
-      this.validMoves = [];
+    let pieceToMove: Piece = this.game.positions[this.game.selected.r][this.game.selected.c];
+    if (!this.canMove(pieceToMove, this.game.selected, new Position(r, c))) {
+      this.game.selected = null;
+      this.game.validMoves = [];
       return;
     }
 
@@ -145,38 +150,38 @@ export class AppComponent implements AfterViewInit {
 
     p2.onMove(this.selected, new Position(r, c)); */
 
-    this.lastMovedPieceId = this.positionSubject.value[this.selected.r][this.selected.c].id;
-    const newBorad = pieceToMove.move(this.selected, new Position(r, c), this.positionSubject.value);
-    this.selected = null;
-    this.validMoves = [];
+    this.game.lastMovedPieceId = this.game.positions[this.game.selected.r][this.game.selected.c].id;
+    const newBorad = pieceToMove.move(this.game.selected, new Position(r, c), this.game.positions);
+    this.game.selected = null;
+    this.game.validMoves = [];
 
-    this.players[pieceToMove.color].hasTurn = false;
-    this.players[(pieceToMove.color + 1) % 2].hasTurn = true;
+    this.game.players[pieceToMove.color].hasTurn = false;
+    this.game.players[(pieceToMove.color + 1) % 2].hasTurn = true;
 
-    this.positionSubject.next(newBorad);
+    // this.positionSubject.next(newBorad);
   }
 
   private canMove(piece: Piece, initialPos: Position, intendedPos: Position): boolean {
-    return piece.canMove(initialPos ,intendedPos, this.positionSubject.value);
+    return piece.canMove(initialPos ,intendedPos, this.game.positions);
   }
 
   private capture(r: number, c: number) {
     // get piece to move, if it cannot be moved, return and reset selected and valid moves
-    let pieceToMove: Piece = this.positionSubject.value[this.selected.r][this.selected.c];
-    if (!this.canMove(pieceToMove, this.selected, new Position(r, c))) {
-      this.selected = null;
-      this.validMoves = [];
+    let pieceToMove: Piece = this.game.positions[this.game.selected.r][this.game.selected.c];
+    if (!this.canMove(pieceToMove, this.game.selected, new Position(r, c))) {
+      this.game.selected = null;
+      this.game.validMoves = [];
       return;
     }
 
-    let pos: Piece[][] = this.positionSubject.value;
+    let pos: Piece[][] = this.game.positions;
     let toCapture = pos[r][c];
-    let captor = pos[this.selected.r][this.selected.c];
+    let captor = pos[this.game.selected.r][this.game.selected.c];
     pos[r][c] = captor;
-    this.capturedPieces.push(toCapture);
+    this.game.capturedPieces.push(toCapture);
     // this.capturedPieces = [toCapture];
-    pos[this.selected.r][this.selected.c] = null; // todo:: add captured piece to captured array
-    this.positionSubject.next(pos);
+    pos[this.game.selected.r][this.game.selected.c] = null; // todo:: add captured piece to captured array
+    // this.positionSubject.next(pos);
   }
 
 }
