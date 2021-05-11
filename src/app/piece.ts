@@ -1,5 +1,6 @@
 import { Position } from './position';
 import { Color } from './color';
+import { Game } from './game';
 
 export abstract class Piece {
   color: Color
@@ -34,11 +35,11 @@ export abstract class Piece {
     return (this.color == Color.black) ? 'black' : 'white';
   }
 
-  abstract canMove(initialPos: Position, intendedPos: Position, board: Piece[][]): boolean;
+  abstract canMove(initialPos: Position, intendedPos: Position, game: Game): boolean;
 
-  abstract getValidPositions(initialPos: Position, board: Piece[][]): Position[];
+  abstract getValidPositions(initialPos: Position, game: Game): Position[];
 
-  abstract move(from: Position, to: Position, board: Piece[][]): Piece[][];
+  abstract move(from: Position, to: Position, game: Game): Piece[][];
 
   onMove(from: Position, to: Position) {
     if (this instanceof Pawn) {
@@ -57,71 +58,73 @@ export class King extends Piece {
     super(id, color, startingPosition)
   }
 
-  canMove(initialPos: Position, intendedPos: Position, board: Piece[][]): boolean {
-    return inPositions(this.getValidPositions(initialPos, board), intendedPos);
+  canMove(initialPos: Position, intendedPos: Position, game: Game): boolean {
+    return inPositions(this.getValidPositions(initialPos, game), intendedPos);
   }
 
-  getValidPositions(initialPos: Position, board: Piece[][]): Position[] {
+  getValidPositions(initialPos: Position, game: Game): Position[] {
     let legalPos: Position[] = [];
     let testPos: Position;
 
     testPos = new Position(initialPos.r - 1, initialPos.c - 1);
-    if (validPos(testPos, board, this.color)) {
+    if (validPos(testPos, game.positions, this.color)) {
       legalPos.push(testPos);
     }
 
     testPos = new Position(initialPos.r - 1, initialPos.c);
-    if (validPos(testPos, board, this.color)) {
+    if (validPos(testPos, game.positions, this.color)) {
       legalPos.push(testPos);
     }
 
     testPos = new Position(initialPos.r - 1, initialPos.c + 1);
-    if (validPos(testPos, board, this.color)) {
+    if (validPos(testPos, game.positions, this.color)) {
       legalPos.push(testPos);
     }
 
     testPos = new Position(initialPos.r, initialPos.c - 1);
-    if (validPos(testPos, board, this.color)) {
+    if (validPos(testPos, game.positions, this.color)) {
       legalPos.push(testPos);
     }
 
     testPos = new Position(initialPos.r, initialPos.c);
-    if (validPos(testPos, board, this.color)) {
+    if (validPos(testPos, game.positions, this.color)) {
       legalPos.push(testPos);
     }
 
     testPos = new Position(initialPos.r, initialPos.c + 1);
-    if (validPos(testPos, board, this.color)) {
+    if (validPos(testPos, game.positions, this.color)) {
       legalPos.push(testPos);
     }
 
     testPos = new Position(initialPos.r + 1, initialPos.c - 1);
-    if (validPos(testPos, board, this.color)) {
+    if (validPos(testPos, game.positions, this.color)) {
       legalPos.push(testPos);
     }
 
     testPos = new Position(initialPos.r + 1, initialPos.c);
-    if (validPos(testPos, board, this.color)) {
+    if (validPos(testPos, game.positions, this.color)) {
       legalPos.push(testPos);
     }
 
     testPos = new Position(initialPos.r + 1, initialPos.c + 1);
-    if (validPos(testPos, board, this.color)) {
+    if (validPos(testPos, game.positions, this.color)) {
       legalPos.push(testPos);
     }
 
     return legalPos
   }
 
-  move(from: Position, to: Position, board: Piece[][]): Piece[][] {
-    let p1 = board[from.r][from.c];
+  move(from: Position, to: Position, game: Game): Piece[][] {
+    /* let p1 = board[from.r][from.c];
     let p2 = board[to.r][to.c];
     board[to.r][to.c] = p1;
-    board[from.r][from.c] = p2; // p2 is null
+    board[from.r][from.c] = p2; // p2 is null */
+
+    switchBoardCellElemPos(game.positions, from, to)
 
     this.onMove(from, to);
 
-    return board;
+    return game.positions;
   }
 
 }
@@ -131,33 +134,35 @@ export class Queen extends Piece {
     super(id, color, startingPosition)
   }
 
-  getValidPositions(initialPos: Position, board: Piece[][]): Position[] {
+  getValidPositions(initialPos: Position, game: Game): Position[] {
     let legalPos: Position[] = [];
     let testPos: Position;
 
     let b = new Bishop(0, this.color, null);
-    let bPos = b.getValidPositions(initialPos, board);
+    let bPos = b.getValidPositions(initialPos, game);
     let r = new Rook(0, this.color, null);
-    let rPos = r.getValidPositions(initialPos, board);
+    let rPos = r.getValidPositions(initialPos, game);
 
     legalPos = bPos.concat(rPos);
 
     return legalPos;
   }
 
-  canMove(initialPos: Position, intendedPos: Position, board: Piece[][]): boolean {
-    return inPositions(this.getValidPositions(initialPos, board), intendedPos);
+  canMove(initialPos: Position, intendedPos: Position, game: Game): boolean {
+    return inPositions(this.getValidPositions(initialPos, game), intendedPos);
   }
 
-  move(from: Position, to: Position, board: Piece[][]): Piece[][] {
-    let p1 = board[from.r][from.c];
+  move(from: Position, to: Position, game: Game): Piece[][] {
+    /* let p1 = board[from.r][from.c];
     let p2 = board[to.r][to.c];
     board[to.r][to.c] = p1;
-    board[from.r][from.c] = p2; // p2 is null
+    board[from.r][from.c] = p2; // p2 is null */
+
+    switchBoardCellElemPos(game.positions, from, to)
 
     this.onMove(from, to);
 
-    return board;
+    return game.positions;
   }
 }
 
@@ -166,58 +171,58 @@ export class Rook extends Piece {
     super(id, color, startingPosition)
   }
 
-  getValidPositions(initialPos: Position, board: Piece[][]): Position[] {
+  getValidPositions(initialPos: Position, game: Game): Position[] {
     let legalPos: Position[] = [];
     let testPos: Position;
 
     for (let i = 1; i <= 8; i++) {
       testPos = new Position(initialPos.r, initialPos.c - i);
-      let foobar = foo(testPos, board, this.color);
-      if (foobar == bar.empty) {
+      let foobar = getCellState(testPos, game.positions, this.color);
+      if (foobar == CellState.empty) {
         legalPos.push(testPos);
-      } else if (foobar == bar.enemy) {
+      } else if (foobar == CellState.enemy) {
         legalPos.push(testPos);
         break;
-      } else if (foobar == bar.outOfBound || bar.friendly) {
+      } else if (foobar == CellState.outOfBound || CellState.friendly) {
         break;
       }
     }
 
     for (let i = 1; i <= 8; i++) {
       testPos = new Position(initialPos.r, initialPos.c + i);
-      let foobar = foo(testPos, board, this.color);
-      if (foobar == bar.empty) {
+      let foobar = getCellState(testPos, game.positions, this.color);
+      if (foobar == CellState.empty) {
         legalPos.push(testPos);
-      } else if (foobar == bar.enemy) {
+      } else if (foobar == CellState.enemy) {
         legalPos.push(testPos);
         break;
-      } else if (foobar == bar.outOfBound || bar.friendly) {
+      } else if (foobar == CellState.outOfBound || CellState.friendly) {
         break;
       }
     }
 
     for (let i = 1; i <= 8; i++) {
       testPos = new Position(initialPos.r - i, initialPos.c);
-      let foobar = foo(testPos, board, this.color);
-      if (foobar == bar.empty) {
+      let foobar = getCellState(testPos, game.positions, this.color);
+      if (foobar == CellState.empty) {
         legalPos.push(testPos);
-      } else if (foobar == bar.enemy) {
+      } else if (foobar == CellState.enemy) {
         legalPos.push(testPos);
         break;
-      } else if (foobar == bar.outOfBound || bar.friendly) {
+      } else if (foobar == CellState.outOfBound || CellState.friendly) {
         break;
       }
     }
 
     for (let i = 1; i <= 8; i++) {
       testPos = new Position(initialPos.r + i, initialPos.c);
-      let foobar = foo(testPos, board, this.color);
-      if (foobar == bar.empty) {
+      let foobar = getCellState(testPos, game.positions, this.color);
+      if (foobar == CellState.empty) {
         legalPos.push(testPos);
-      } else if (foobar == bar.enemy) {
+      } else if (foobar == CellState.enemy) {
         legalPos.push(testPos);
         break;
-      } else if (foobar == bar.outOfBound || bar.friendly) {
+      } else if (foobar == CellState.outOfBound || CellState.friendly) {
         break;
       }
     }
@@ -225,19 +230,21 @@ export class Rook extends Piece {
     return legalPos;
   }
 
-  canMove(initialPos: Position, intendedPos: Position, board: Piece[][]): boolean {
-    return inPositions(this.getValidPositions(initialPos, board), intendedPos);
+  canMove(initialPos: Position, intendedPos: Position, game: Game): boolean {
+    return inPositions(this.getValidPositions(initialPos, game), intendedPos);
   }
 
-  move(from: Position, to: Position, board: Piece[][]): Piece[][] {
-    let p1 = board[from.r][from.c];
+  move(from: Position, to: Position, game: Game): Piece[][] {
+    /* let p1 = board[from.r][from.c];
     let p2 = board[to.r][to.c];
     board[to.r][to.c] = p1;
-    board[from.r][from.c] = p2; // p2 is null
+    board[from.r][from.c] = p2; // p2 is null */
+
+    switchBoardCellElemPos(game.positions, from, to)
 
     this.onMove(from, to);
 
-    return board;
+    return game.positions;
   }
 }
 
@@ -246,66 +253,68 @@ export class Knight extends Piece {
     super(id, color, startingPosition)
   }
 
-  getValidPositions(initialPos: Position, board: Piece[][]): Position[] {
+  getValidPositions(initialPos: Position, game: Game): Position[] {
     let legalPos: Position[] = [];
     let testPos: Position;
 
     testPos = new Position(initialPos.r - 2, initialPos.c - 1);
-    if (validPos(testPos, board, this.color)) {
+    if (validPos(testPos, game.positions, this.color)) {
       legalPos.push(testPos);
     }
 
     testPos = new Position(initialPos.r - 2, initialPos.c + 1);
-    if (validPos(testPos, board, this.color)) {
+    if (validPos(testPos, game.positions, this.color)) {
       legalPos.push(testPos);
     }
 
     testPos = new Position(initialPos.r - 1, initialPos.c - 2);
-    if (validPos(testPos, board, this.color)) {
+    if (validPos(testPos, game.positions, this.color)) {
       legalPos.push(testPos);
     }
 
     testPos = new Position(initialPos.r - 1, initialPos.c + 2);
-    if (validPos(testPos, board, this.color)) {
+    if (validPos(testPos, game.positions, this.color)) {
       legalPos.push(testPos);
     }
 
     testPos = new Position(initialPos.r + 2, initialPos.c + 1);
-    if (validPos(testPos, board, this.color)) {
+    if (validPos(testPos, game.positions, this.color)) {
       legalPos.push(testPos);
     }
 
     testPos = new Position(initialPos.r + 2, initialPos.c - 1);
-    if (validPos(testPos, board, this.color)) {
+    if (validPos(testPos, game.positions, this.color)) {
       legalPos.push(testPos);
     }
 
     testPos = new Position(initialPos.r + 1, initialPos.c + 2);
-    if (validPos(testPos, board, this.color)) {
+    if (validPos(testPos, game.positions, this.color)) {
       legalPos.push(testPos);
     }
 
     testPos = new Position(initialPos.r + 1, initialPos.c - 2);
-    if (validPos(testPos, board, this.color)) {
+    if (validPos(testPos, game.positions, this.color)) {
       legalPos.push(testPos);
     }
 
     return legalPos;
   }
 
-  canMove(initialPos: Position, intendedPos: Position, board: Piece[][]): boolean {
-    return inPositions(this.getValidPositions(initialPos, board), intendedPos);
+  canMove(initialPos: Position, intendedPos: Position, game: Game): boolean {
+    return inPositions(this.getValidPositions(initialPos, game), intendedPos);
   }
 
-  move(from: Position, to: Position, board: Piece[][]): Piece[][] {
-    let p1 = board[from.r][from.c];
+  move(from: Position, to: Position, game: Game): Piece[][] {
+    /* let p1 = board[from.r][from.c];
     let p2 = board[to.r][to.c];
     board[to.r][to.c] = p1;
-    board[from.r][from.c] = p2; // p2 is null
+    board[from.r][from.c] = p2; // p2 is null */
+
+    switchBoardCellElemPos(game.positions, from, to)
 
     this.onMove(from, to);
 
-    return board;
+    return game.positions;
   }
 }
 
@@ -314,58 +323,58 @@ export class Bishop extends Piece {
     super(id, color, startingPosition)
   }
 
-  getValidPositions(initialPos: Position, board: Piece[][]): Position[] {
+  getValidPositions(initialPos: Position, game: Game): Position[] {
     let legalPos: Position[] = [];
     let testPos: Position;
 
     for (let i = 1; i <= 8; i++) {
       testPos = new Position(initialPos.r - i, initialPos.c - i);
-      let foobar = foo(testPos, board, this.color);
-      if (foobar == bar.empty) {
+      let foobar = getCellState(testPos, game.positions, this.color);
+      if (foobar == CellState.empty) {
         legalPos.push(testPos);
-      } else if (foobar == bar.enemy) {
+      } else if (foobar == CellState.enemy) {
         legalPos.push(testPos);
         break;
-      } else if (foobar == bar.outOfBound || bar.friendly) {
+      } else if (foobar == CellState.outOfBound || CellState.friendly) {
         break;
       }
     }
 
     for (let i = 1; i <= 8; i++) {
       testPos = new Position(initialPos.r - i, initialPos.c + i);
-      let foobar = foo(testPos, board, this.color);
-      if (foobar == bar.empty) {
+      let foobar = getCellState(testPos, game.positions, this.color);
+      if (foobar == CellState.empty) {
         legalPos.push(testPos);
-      } else if (foobar == bar.enemy) {
+      } else if (foobar == CellState.enemy) {
         legalPos.push(testPos);
         break;
-      } else if (foobar == bar.outOfBound || bar.friendly) {
+      } else if (foobar == CellState.outOfBound || CellState.friendly) {
         break;
       }
     }
 
     for (let i = 1; i <= 8; i++) {
       testPos = new Position(initialPos.r + i, initialPos.c - i);
-      let foobar = foo(testPos, board, this.color);
-      if (foobar == bar.empty) {
+      let foobar = getCellState(testPos, game.positions, this.color);
+      if (foobar == CellState.empty) {
         legalPos.push(testPos);
-      } else if (foobar == bar.enemy) {
+      } else if (foobar == CellState.enemy) {
         legalPos.push(testPos);
         break;
-      } else if (foobar == bar.outOfBound || bar.friendly) {
+      } else if (foobar == CellState.outOfBound || CellState.friendly) {
         break;
       }
     }
 
     for (let i = 1; i <= 8; i++) {
       testPos = new Position(initialPos.r + i, initialPos.c + i);
-      let foobar = foo(testPos, board, this.color);
-      if (foobar == bar.empty) {
+      let foobar = getCellState(testPos, game.positions, this.color);
+      if (foobar == CellState.empty) {
         legalPos.push(testPos);
-      } else if (foobar == bar.enemy) {
+      } else if (foobar == CellState.enemy) {
         legalPos.push(testPos);
         break;
-      } else if (foobar == bar.outOfBound || bar.friendly) {
+      } else if (foobar == CellState.outOfBound || CellState.friendly) {
         break;
       }
     }
@@ -373,19 +382,21 @@ export class Bishop extends Piece {
     return legalPos;
   }
 
-  canMove(initialPos: Position, intendedPos: Position, board: Piece[][]): boolean {
-    return inPositions(this.getValidPositions(initialPos, board), intendedPos);
+  canMove(initialPos: Position, intendedPos: Position, game: Game): boolean {
+    return inPositions(this.getValidPositions(initialPos, game), intendedPos);
   }
 
-  move(from: Position, to: Position, board: Piece[][]): Piece[][] {
-    let p1 = board[from.r][from.c];
+  move(from: Position, to: Position, game: Game): Piece[][] {
+    /* let p1 = board[from.r][from.c];
     let p2 = board[to.r][to.c];
     board[to.r][to.c] = p1;
-    board[from.r][from.c] = p2; // p2 is null
+    board[from.r][from.c] = p2; // p2 is null */
+
+    switchBoardCellElemPos(game.positions, from, to)
 
     this.onMove(from, to);
 
-    return board;
+    return game.positions;
   }
 }
 
@@ -397,66 +408,66 @@ export class Pawn extends Piece {
     super(id, color, startingPosition)
   }
 
-  getValidPositions(initialPos: Position, board: Piece[][]): Position[] {
+  getValidPositions(initialPos: Position, game: Game): Position[] {
     let legalPos: Position[] = [];
     let testPos: Position;
-    let foobar: bar;
+    let foobar: CellState;
 
     if (this.color == Color.white) {
       testPos = new Position(initialPos.r - 1, initialPos.c - 1);
-      foobar = foo(testPos, board, this.color);
-      if (foobar == bar.enemy) {
+      foobar = getCellState(testPos, game.positions, this.color);
+      if (foobar == CellState.enemy) {
         legalPos.push(testPos);
-      } else if (foobar == bar.empty || foobar == bar.outOfBound || bar.friendly) {
+      } else if (foobar == CellState.empty || foobar == CellState.outOfBound || CellState.friendly) {
         // do nothing;
       }
 
       testPos = new Position(initialPos.r - 1, initialPos.c + 1);
-      foobar = foo(testPos, board, this.color);
-      if (foobar == bar.enemy) {
+      foobar = getCellState(testPos, game.positions, this.color);
+      if (foobar == CellState.enemy) {
         legalPos.push(testPos);
-      } else if (foobar == bar.empty || foobar == bar.outOfBound || bar.friendly) {
+      } else if (foobar == CellState.empty || foobar == CellState.outOfBound || CellState.friendly) {
         // do nothing;
       }
 
       for (let i = 1; i <= 2; i++) {
         testPos = new Position(initialPos.r - i, initialPos.c);
-        foobar = foo(testPos, board, this.color);
-        if (foobar == bar.empty) {
+        foobar = getCellState(testPos, game.positions, this.color);
+        if (foobar == CellState.empty) {
           if (i > 1 && this.hasMoved) {
             break;
           }
           legalPos.push(testPos);
-        } else if (foobar == bar.enemy || foobar == bar.outOfBound || bar.friendly) {
+        } else if (foobar == CellState.enemy || foobar == CellState.outOfBound || CellState.friendly) {
           break;
         }
       }
     } else {
       testPos = new Position(initialPos.r + 1, initialPos.c - 1);
-      foobar = foo(testPos, board, this.color);
-      if (foobar == bar.enemy) {
+      foobar = getCellState(testPos, game.positions, this.color);
+      if (foobar == CellState.enemy) {
         legalPos.push(testPos);
-      } else if (foobar == bar.empty || foobar == bar.outOfBound || bar.friendly) {
+      } else if (foobar == CellState.empty || foobar == CellState.outOfBound || CellState.friendly) {
         // do nothing;
       }
 
       testPos = new Position(initialPos.r + 1, initialPos.c + 1);
-      foobar = foo(testPos, board, this.color);
-      if (foobar == bar.enemy) {
+      foobar = getCellState(testPos, game.positions, this.color);
+      if (foobar == CellState.enemy) {
         legalPos.push(testPos);
-      } else if (foobar == bar.empty || foobar == bar.outOfBound || bar.friendly) {
+      } else if (foobar == CellState.empty || foobar == CellState.outOfBound || CellState.friendly) {
         // do nothing;
       }
 
       for (let i = 1; i <= 2; i++) {
         testPos = new Position(initialPos.r + i, initialPos.c);
-        foobar = foo(testPos, board, this.color);
-        if (foobar == bar.empty) {
+        foobar = getCellState(testPos, game.positions, this.color);
+        if (foobar == CellState.empty) {
           if (i > 1 && this.hasMoved) {
             break;
           }
           legalPos.push(testPos);
-        } else if (foobar == bar.enemy || foobar == bar.outOfBound || bar.friendly) {
+        } else if (foobar == CellState.enemy || foobar == CellState.outOfBound || CellState.friendly) {
           break;
         }
       }
@@ -464,30 +475,95 @@ export class Pawn extends Piece {
 
     // check en passant
     /* testPos = new Position(initialPos.r, initialPos.c - 1);
-    let pieceInPos = board[testPos.c][testPos.r];
-    if (pieceInPos.id == idOfLastMoved) {
-      // do en passant
+    let pieceInPos = game.positions[testPos.c][testPos.r];
+    if (pieceInPos && withinBound(testPos) && pieceInPos instanceof Pawn && pieceInPos.id == game.lastMovedPieceId) {
+      if (this.color == Color.white) {
+        legalPos.push(new Position(testPos.r -1, testPos.c));
+      } else {
+        legalPos.push(new Position(testPos.r + 1, testPos.c));
+      }
+    }
+
+    testPos = new Position(initialPos.r, initialPos.c + 1);
+
+    pieceInPos = game.positions[testPos.r][testPos.c];
+    if (pieceInPos && withinBound(testPos) && pieceInPos instanceof Pawn && pieceInPos.id == game.lastMovedPieceId) {
+      if (this.color == Color.white) {
+        legalPos.push(new Position(testPos.r -1, testPos.c));
+      } else {
+        legalPos.push(new Position(testPos.r + 1, testPos.c));
+      }
     } */
+
+    let enPassanePos = this.enPassantPos(initialPos, game);
+    if (enPassanePos) {
+      legalPos.push(enPassanePos);
+    }
 
     return legalPos;
   }
 
-  canMove(initialPos: Position, intendedPos: Position, board: Piece[][]): boolean {
-    return inPositions(this.getValidPositions(initialPos, board), intendedPos);
+  enPassantPos(currentPos: Position, game: Game): Position {
+    let legalPos: Position;
+    let testPos: Position;
+    let pieceInPos: Piece;
+
+    testPos = new Position(currentPos.r, currentPos.c - 1);
+    if (withinBound(testPos)) {
+      pieceInPos = game.positions[testPos.r][testPos.c];
+      if (pieceInPos && pieceInPos instanceof Pawn && pieceInPos.id == game.lastMovedPieceId) {
+
+        if (this.color == Color.white) {
+          legalPos = new Position(testPos.r -1, testPos.c);
+        } else {
+          legalPos = new Position(testPos.r + 1, testPos.c);
+        }
+        return legalPos;
+      }
+    }
+    
+    testPos = new Position(currentPos.r, currentPos.c + 1);
+    if (withinBound(testPos)) {
+      pieceInPos = game.positions[testPos.r][testPos.c];
+      if (pieceInPos && withinBound(testPos) && pieceInPos instanceof Pawn && pieceInPos.id == game.lastMovedPieceId) {
+        if (this.color == Color.white) {
+          legalPos = new Position(testPos.r -1, testPos.c);
+        } else {
+          legalPos = new Position(testPos.r + 1, testPos.c);
+        }
+        return legalPos;
+      }
+    }
+
+    return null;
   }
 
-  move(from: Position, to: Position, board: Piece[][]): Piece[][] {
-    let p1 = board[from.r][from.c];
-    let p2 = board[to.r][to.c];
-    board[to.r][to.c] = p1;
-    board[from.r][from.c] = p2; // p2 is null
+  canMove(initialPos: Position, intendedPos: Position, game: Game): boolean {
+    return inPositions(this.getValidPositions(initialPos, game), intendedPos);
+  }
+
+  move(from: Position, to: Position, game: Game): Piece[][] {
+    const lastMovedPieceId = game.positions[from.r][from.c].id;
+    let enPassanePos = this.enPassantPos(from, game);
+
+    if (enPassanePos && to.isEqual(enPassanePos)) {
+      switchBoardCellElemPos(game.positions, from, to);
+      game.capturedPieces.push(game.positions[from.r][to.c]);
+      game.positions[from.r][to.c] = null;
+    } else {
+      switchBoardCellElemPos(game.positions, from, to);
+    }
 
     this.onMove(from, to);
 
-    return board;
+    game.lastMovedPieceId = lastMovedPieceId;
+
+    return game.positions;
   }
 }
 
+// returns only if position is within bound and a if a friendly piece is not occupying
+// that position 
 function validPos(position: Position, board: Piece[][], color: Color): boolean {
   if (!withinBound(position)) {
     return false;
@@ -502,6 +578,7 @@ function validPos(position: Position, board: Piece[][], color: Color): boolean {
   return true;
 }
 
+// returns true only if position is contained in positions array
 function inPositions(positions: Position[], position: Position): boolean {
   for (let pos of positions) {
     if (pos.r == position.r && pos.c == position.c) {
@@ -512,6 +589,10 @@ function inPositions(positions: Position[], position: Position): boolean {
   return false;
 }
 
+// returns true only if position.r and position.c are actual positions inside the board
+// e.g. 
+//  {r: 4, c: 6} => true
+//  {r: -1, c: 6} => false
 function withinBound(position: Position): boolean {
   if ((position.r < 0 || position.r > 7 || position.c < 0 || position.c > 7)) {
     return false
@@ -520,42 +601,39 @@ function withinBound(position: Position): boolean {
   return true;
 }
 
-function foo(position: Position, board: Piece[][], color: Color): bar {
+// returns state of a particular position on the board
+function getCellState(position: Position, board: Piece[][], color: Color): CellState {
   if (!withinBound(position)) {
-    return bar.outOfBound;
+    return CellState.outOfBound;
   }
 
   if (board[position.r][position.c] && board[position.r][position.c].color == color) {
-    return bar.friendly;
+    return CellState.friendly;
   }
 
   if (board[position.r][position.c] && board[position.r][position.c].color != color) {
-    return bar.enemy;
+    return CellState.enemy;
   }
 
-  return bar.empty;
+  return CellState.empty;
 }
 
-enum bar {
+enum CellState {
   empty,
   enemy,
   outOfBound,
   friendly,
 }
 
-function baz(e: bar): string {
-  switch (e) {
-    case 0:
-      return "empty";
-    break;
-    case 2:
-      return "enemy";
-    break;
-    case 3:
-      return "out of bound"
-    break;
-    case 4: 
-      return "friendly";
-    break;
-  }
+// exchanges positions of 2 elements on the board (2D-array)
+function switchBoardCellElemPos(board: Piece[][], pos1: Position, pos2: Position) {
+  let pos1Elem = board[pos1.r][pos1.c];
+  board[pos1.r][pos1.c] = null;
+
+  let pos2Elem = board[pos2.r][pos2.c];
+  board[pos2.r][pos2.c] = null;
+
+
+  board[pos1.r][pos1.c] = pos2Elem;
+  board[pos2.r][pos2.c] = pos1Elem;
 }
