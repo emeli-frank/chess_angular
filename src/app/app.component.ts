@@ -22,6 +22,7 @@ export class AppComponent implements AfterViewInit {
   @ViewChild('board') board: ElementRef;
   players: Player[] = [];
   capturedPieces: Piece[] = [];
+  lastMovedPieceId: number;
 
   constructor() {
     this.players.push(new Player(Color.white, true))
@@ -69,7 +70,7 @@ export class AppComponent implements AfterViewInit {
   }
 
   // this method is called when a piece that has turn is clicks
-  pieceClicked(piece: Piece, r: number, c: number) {
+  onPieceClicked(piece: Piece, r: number, c: number) {
     /* 
      * capturing oponents piece 
      */
@@ -105,7 +106,7 @@ export class AppComponent implements AfterViewInit {
   }
 
   // this method is called when player clicks on an empty cell
-  emptyCellClicked(r: number, c: number) {
+  onEmptyCellClicked(r: number, c: number) {
     // get piece to move, if it cannot be moved, return and reset selected and valid moves
     let pieceToMove: Piece = this.positionSubject.value[this.selected.r][this.selected.c];
     if (!this.canMove(pieceToMove, this.selected, new Position(r, c))) {
@@ -114,7 +115,7 @@ export class AppComponent implements AfterViewInit {
       return;
     }
 
-    let pos: Piece[][] = this.positionSubject.value;
+    /* let pos: Piece[][] = this.positionSubject.value;
     let p1 = pos[r][c];
     let p2 = pos[this.selected.r][this.selected.c];
     pos[r][c] = p2;
@@ -127,7 +128,32 @@ export class AppComponent implements AfterViewInit {
     this.validMoves = [];
 
     this.players[pieceToMove.color].hasTurn = false;
+    this.players[(pieceToMove.color + 1) % 2].hasTurn = true; */
+
+
+
+
+
+
+
+
+    /* let pos: Piece[][] = this.positionSubject.value;
+    let p1 = pos[r][c];
+    let p2 = pos[this.selected.r][this.selected.c];
+    pos[r][c] = p2;
+    pos[this.selected.r][this.selected.c] = p1; // p1 is null
+
+    p2.onMove(this.selected, new Position(r, c)); */
+
+    this.lastMovedPieceId = this.positionSubject.value[this.selected.r][this.selected.c].id;
+    const newBorad = pieceToMove.move(this.selected, new Position(r, c), this.positionSubject.value);
+    this.selected = null;
+    this.validMoves = [];
+
+    this.players[pieceToMove.color].hasTurn = false;
     this.players[(pieceToMove.color + 1) % 2].hasTurn = true;
+
+    this.positionSubject.next(newBorad);
   }
 
   private canMove(piece: Piece, initialPos: Position, intendedPos: Position): boolean {

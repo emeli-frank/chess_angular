@@ -14,7 +14,7 @@
   <div #board id="foo">
     <ng-container *ngFor="let cells of position$ | async; let r=index">
       <ng-container *ngFor="let piece of cells; let c=index">
-        <app-cell *ngIf="piece" (click)="pieceClicked(piece, r, c)"
+        <app-cell *ngIf="piece" (click)="onPieceClicked(piece, r, c)"
           [empty]="false"
           [row]="r"
           [col]="c"
@@ -23,7 +23,7 @@
           [isSelected]="selected&&selected.r==r&&selected.c==c"
         ></app-cell>
   
-        <div *ngIf="!piece" (click)="emptyCellClicked(r, c)" class="piece" style="transform:{{translate(r, c)}}"></div>
+        <div *ngIf="!piece" (click)="onEmptyCellClicked(r, c)" class="piece" style="transform:{{translate(r, c)}}"></div>
       </ng-container>
     </ng-container>
   

@@ -1,12 +1,11 @@
 import { Position } from './position';
 import { Color } from './color';
-import { empty } from 'rxjs';
 
 export abstract class Piece {
   color: Color
   startingPosition: Position;
 
-  constructor(color: Color, startingPosition: Position) {
+  constructor(public id: number, color: Color, startingPosition: Position) {
     this.color = color;
     this.startingPosition = startingPosition;
   }
@@ -39,6 +38,8 @@ export abstract class Piece {
 
   abstract getValidPositions(initialPos: Position, board: Piece[][]): Position[];
 
+  abstract move(from: Position, to: Position, board: Piece[][]): Piece[][];
+
   onMove(from: Position, to: Position) {
     if (this instanceof Pawn) {
       // check if pawn moved and if it jumpled 2 squares and set approprait flags
@@ -52,8 +53,8 @@ export abstract class Piece {
 }
 
 export class King extends Piece {
-  constructor(color: Color, startingPosition: Position) {
-    super(color, startingPosition)
+  constructor(id: number, color: Color, startingPosition: Position) {
+    super(id, color, startingPosition)
   }
 
   canMove(initialPos: Position, intendedPos: Position, board: Piece[][]): boolean {
@@ -112,20 +113,31 @@ export class King extends Piece {
     return legalPos
   }
 
+  move(from: Position, to: Position, board: Piece[][]): Piece[][] {
+    let p1 = board[from.r][from.c];
+    let p2 = board[to.r][to.c];
+    board[to.r][to.c] = p1;
+    board[from.r][from.c] = p2; // p2 is null
+
+    this.onMove(from, to);
+
+    return board;
+  }
+
 }
 
 export class Queen extends Piece {
-  constructor(color: Color, startingPosition: Position) {
-    super(color, startingPosition)
+  constructor(id: number, color: Color, startingPosition: Position) {
+    super(id, color, startingPosition)
   }
 
   getValidPositions(initialPos: Position, board: Piece[][]): Position[] {
     let legalPos: Position[] = [];
     let testPos: Position;
 
-    let b = new Bishop(this.color, null);
+    let b = new Bishop(0, this.color, null);
     let bPos = b.getValidPositions(initialPos, board);
-    let r = new Rook(this.color, null);
+    let r = new Rook(0, this.color, null);
     let rPos = r.getValidPositions(initialPos, board);
 
     legalPos = bPos.concat(rPos);
@@ -136,11 +148,22 @@ export class Queen extends Piece {
   canMove(initialPos: Position, intendedPos: Position, board: Piece[][]): boolean {
     return inPositions(this.getValidPositions(initialPos, board), intendedPos);
   }
+
+  move(from: Position, to: Position, board: Piece[][]): Piece[][] {
+    let p1 = board[from.r][from.c];
+    let p2 = board[to.r][to.c];
+    board[to.r][to.c] = p1;
+    board[from.r][from.c] = p2; // p2 is null
+
+    this.onMove(from, to);
+
+    return board;
+  }
 }
 
 export class Rook extends Piece {
-  constructor(color: Color, startingPosition: Position) {
-    super(color, startingPosition)
+  constructor(id: number, color: Color, startingPosition: Position) {
+    super(id, color, startingPosition)
   }
 
   getValidPositions(initialPos: Position, board: Piece[][]): Position[] {
@@ -205,11 +228,22 @@ export class Rook extends Piece {
   canMove(initialPos: Position, intendedPos: Position, board: Piece[][]): boolean {
     return inPositions(this.getValidPositions(initialPos, board), intendedPos);
   }
+
+  move(from: Position, to: Position, board: Piece[][]): Piece[][] {
+    let p1 = board[from.r][from.c];
+    let p2 = board[to.r][to.c];
+    board[to.r][to.c] = p1;
+    board[from.r][from.c] = p2; // p2 is null
+
+    this.onMove(from, to);
+
+    return board;
+  }
 }
 
 export class Knight extends Piece {
-  constructor(color: Color, startingPosition: Position) {
-    super(color, startingPosition)
+  constructor(id: number, color: Color, startingPosition: Position) {
+    super(id, color, startingPosition)
   }
 
   getValidPositions(initialPos: Position, board: Piece[][]): Position[] {
@@ -262,11 +296,22 @@ export class Knight extends Piece {
   canMove(initialPos: Position, intendedPos: Position, board: Piece[][]): boolean {
     return inPositions(this.getValidPositions(initialPos, board), intendedPos);
   }
+
+  move(from: Position, to: Position, board: Piece[][]): Piece[][] {
+    let p1 = board[from.r][from.c];
+    let p2 = board[to.r][to.c];
+    board[to.r][to.c] = p1;
+    board[from.r][from.c] = p2; // p2 is null
+
+    this.onMove(from, to);
+
+    return board;
+  }
 }
 
 export class Bishop extends Piece {
-  constructor(color: Color, startingPosition: Position) {
-    super(color, startingPosition)
+  constructor(id: number, color: Color, startingPosition: Position) {
+    super(id, color, startingPosition)
   }
 
   getValidPositions(initialPos: Position, board: Piece[][]): Position[] {
@@ -331,14 +376,25 @@ export class Bishop extends Piece {
   canMove(initialPos: Position, intendedPos: Position, board: Piece[][]): boolean {
     return inPositions(this.getValidPositions(initialPos, board), intendedPos);
   }
+
+  move(from: Position, to: Position, board: Piece[][]): Piece[][] {
+    let p1 = board[from.r][from.c];
+    let p2 = board[to.r][to.c];
+    board[to.r][to.c] = p1;
+    board[from.r][from.c] = p2; // p2 is null
+
+    this.onMove(from, to);
+
+    return board;
+  }
 }
 
 export class Pawn extends Piece {
   hasMoved: boolean = false;
   moveTwiceInFirstMove: boolean = false;
 
-  constructor(color: Color, startingPosition: Position) {
-    super(color, startingPosition)
+  constructor(id: number, color: Color, startingPosition: Position) {
+    super(id, color, startingPosition)
   }
 
   getValidPositions(initialPos: Position, board: Piece[][]): Position[] {
@@ -406,11 +462,29 @@ export class Pawn extends Piece {
       }
     }
 
+    // check en passant
+    /* testPos = new Position(initialPos.r, initialPos.c - 1);
+    let pieceInPos = board[testPos.c][testPos.r];
+    if (pieceInPos.id == idOfLastMoved) {
+      // do en passant
+    } */
+
     return legalPos;
   }
 
   canMove(initialPos: Position, intendedPos: Position, board: Piece[][]): boolean {
     return inPositions(this.getValidPositions(initialPos, board), intendedPos);
+  }
+
+  move(from: Position, to: Position, board: Piece[][]): Piece[][] {
+    let p1 = board[from.r][from.c];
+    let p2 = board[to.r][to.c];
+    board[to.r][to.c] = p1;
+    board[from.r][from.c] = p2; // p2 is null
+
+    this.onMove(from, to);
+
+    return board;
   }
 }
 
