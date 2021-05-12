@@ -39,18 +39,8 @@ export abstract class Piece {
 
   abstract getValidPositions(initialPos: Position, game: Game): Position[];
 
-  abstract move(from: Position, to: Position, game: Game): Piece[][];
-
-  onMove(from: Position, to: Position) {
-    if (this instanceof Pawn) {
-      // check if pawn moved and if it jumpled 2 squares and set approprait flags
-      if (!this.hasMoved && Math.abs(to.r - from.r) == 2) {
-        this.moveTwiceInFirstMove = true;
-      }
-
-      this.hasMoved = true;
-    }
-  }
+  // moves from one cell to another empty cell
+  abstract move(from: Position, to: Position, game: Game);
 }
 
 export class King extends Piece {
@@ -114,19 +104,21 @@ export class King extends Piece {
     return legalPos
   }
 
-  move(from: Position, to: Position, game: Game): Piece[][] {
-    /* let p1 = board[from.r][from.c];
-    let p2 = board[to.r][to.c];
-    board[to.r][to.c] = p1;
-    board[from.r][from.c] = p2; // p2 is null */
+  move(from: Position, to: Position, game: Game): boolean {
+    const lastMovedPieceId = game.getCell(from.r, from.c).id;
 
-    switchBoardCellElemPos(game.positions, from, to)
+    if (!this.canMove(from, to, game)) {
+      game.selectedPosition = null;
+      game.validMoves = [];
 
-    this.onMove(from, to);
+      return false;
+    }
 
-    return game.positions;
+    game.switchBoardCellElemPos(from, to);
+
+    game.lastMovedPieceId = lastMovedPieceId;
+    return true;
   }
-
 }
 
 export class Queen extends Piece {
@@ -152,17 +144,20 @@ export class Queen extends Piece {
     return inPositions(this.getValidPositions(initialPos, game), intendedPos);
   }
 
-  move(from: Position, to: Position, game: Game): Piece[][] {
-    /* let p1 = board[from.r][from.c];
-    let p2 = board[to.r][to.c];
-    board[to.r][to.c] = p1;
-    board[from.r][from.c] = p2; // p2 is null */
+  move(from: Position, to: Position, game: Game): boolean {
+    const lastMovedPieceId = game.getCell(from.r, from.c).id;
 
-    switchBoardCellElemPos(game.positions, from, to)
+    if (!this.canMove(from, to, game)) {
+      game.selectedPosition = null;
+      game.validMoves = [];
 
-    this.onMove(from, to);
+      return false;
+    }
 
-    return game.positions;
+    game.switchBoardCellElemPos(from, to);
+
+    game.lastMovedPieceId = lastMovedPieceId;
+    return true;
   }
 }
 
@@ -234,17 +229,20 @@ export class Rook extends Piece {
     return inPositions(this.getValidPositions(initialPos, game), intendedPos);
   }
 
-  move(from: Position, to: Position, game: Game): Piece[][] {
-    /* let p1 = board[from.r][from.c];
-    let p2 = board[to.r][to.c];
-    board[to.r][to.c] = p1;
-    board[from.r][from.c] = p2; // p2 is null */
+  move(from: Position, to: Position, game: Game): boolean {
+    const lastMovedPieceId = game.getCell(from.r, from.c).id;
 
-    switchBoardCellElemPos(game.positions, from, to)
+    if (!this.canMove(from, to, game)) {
+      game.selectedPosition = null;
+      game.validMoves = [];
 
-    this.onMove(from, to);
+      return false;
+    }
 
-    return game.positions;
+    game.switchBoardCellElemPos(from, to);
+
+    game.lastMovedPieceId = lastMovedPieceId;
+    return true;
   }
 }
 
@@ -304,17 +302,20 @@ export class Knight extends Piece {
     return inPositions(this.getValidPositions(initialPos, game), intendedPos);
   }
 
-  move(from: Position, to: Position, game: Game): Piece[][] {
-    /* let p1 = board[from.r][from.c];
-    let p2 = board[to.r][to.c];
-    board[to.r][to.c] = p1;
-    board[from.r][from.c] = p2; // p2 is null */
+  move(from: Position, to: Position, game: Game): boolean {
+    const lastMovedPieceId = game.getCell(from.r, from.c).id;
 
-    switchBoardCellElemPos(game.positions, from, to)
+    if (!this.canMove(from, to, game)) {
+      game.selectedPosition = null;
+      game.validMoves = [];
 
-    this.onMove(from, to);
+      return false;
+    }
 
-    return game.positions;
+    game.switchBoardCellElemPos(from, to);
+
+    game.lastMovedPieceId = lastMovedPieceId;
+    return true;
   }
 }
 
@@ -386,19 +387,44 @@ export class Bishop extends Piece {
     return inPositions(this.getValidPositions(initialPos, game), intendedPos);
   }
 
-  move(from: Position, to: Position, game: Game): Piece[][] {
-    /* let p1 = board[from.r][from.c];
-    let p2 = board[to.r][to.c];
-    board[to.r][to.c] = p1;
-    board[from.r][from.c] = p2; // p2 is null */
+  move(from: Position, to: Position, game: Game): boolean {
+    const lastMovedPieceId = game.getCell(from.r, from.c).id;
 
-    switchBoardCellElemPos(game.positions, from, to)
+    if (!this.canMove(from, to, game)) {
+      game.selectedPosition = null;
+      game.validMoves = [];
 
-    this.onMove(from, to);
+      return false;
+    }
 
-    return game.positions;
+    game.switchBoardCellElemPos(from, to);
+
+    game.lastMovedPieceId = lastMovedPieceId;
+    return true;
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 export class Pawn extends Piece {
   hasMoved: boolean = false;
@@ -514,20 +540,20 @@ export class Pawn extends Piece {
       if (pieceInPos && pieceInPos instanceof Pawn && pieceInPos.id == game.lastMovedPieceId) {
 
         if (this.color == Color.white) {
-          legalPos = new Position(testPos.r -1, testPos.c);
+          legalPos = new Position(testPos.r - 1, testPos.c);
         } else {
           legalPos = new Position(testPos.r + 1, testPos.c);
         }
         return legalPos;
       }
     }
-    
+
     testPos = new Position(currentPos.r, currentPos.c + 1);
     if (withinBound(testPos)) {
       pieceInPos = game.positions[testPos.r][testPos.c];
       if (pieceInPos && withinBound(testPos) && pieceInPos instanceof Pawn && pieceInPos.id == game.lastMovedPieceId) {
         if (this.color == Color.white) {
-          legalPos = new Position(testPos.r -1, testPos.c);
+          legalPos = new Position(testPos.r - 1, testPos.c);
         } else {
           legalPos = new Position(testPos.r + 1, testPos.c);
         }
@@ -539,28 +565,65 @@ export class Pawn extends Piece {
   }
 
   canMove(initialPos: Position, intendedPos: Position, game: Game): boolean {
+    /* console.log("initialPos:", initialPos);
+    console.log("intendedPos:", intendedPos);
+    console.log("board:", game.positions);
+    console.log("valid positions:", this.getValidPositions(intendedPos, game));
+    console.log(this.getValidPositions(initialPos, game)); */
     return inPositions(this.getValidPositions(initialPos, game), intendedPos);
   }
 
-  move(from: Position, to: Position, game: Game): Piece[][] {
-    const lastMovedPieceId = game.positions[from.r][from.c].id;
-    let enPassanePos = this.enPassantPos(from, game);
+  move(from: Position, to: Position, game: Game): boolean {
+    const lastMovedPieceId = game.getCell(from.r, from.c).id;
 
-    if (enPassanePos && to.isEqual(enPassanePos)) {
-      switchBoardCellElemPos(game.positions, from, to);
-      game.capturedPieces.push(game.positions[from.r][to.c]);
-      game.positions[from.r][to.c] = null;
-    } else {
-      switchBoardCellElemPos(game.positions, from, to);
+    if (!this.canMove(from, to, game)) {
+      return false;
     }
 
-    this.onMove(from, to);
+    const pieceInDestination = game.getCell(to.r, to.c);
 
+    if (pieceInDestination) { // capturing
+      game.capture(from, to);
+    } else { // position is empty, check if capturing by en passant
+      let enPassanePos = this.enPassantPos(from, game);
+
+      if (enPassanePos && to.isEqual(enPassanePos)) {
+        game.switchBoardCellElemPos(from, to);
+        /* game.capturedPieces.push(game.positions[from.r][to.c]);
+        game.positions[from.r][to.c] = null; */
+        game.capture(from, new Position(from.r, to.c));
+      } else {
+        game.switchBoardCellElemPos(from, to);
+      }
+    }
+
+    // check if pawn moved and if it jumpled 2 squares and set approprait flags
+    if (!this.hasMoved && Math.abs(to.r - from.r) == 2) {
+      this.moveTwiceInFirstMove = true;
+    }
+
+    this.hasMoved = true;
     game.lastMovedPieceId = lastMovedPieceId;
-
-    return game.positions;
+    return true;
   }
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // returns only if position is within bound and a if a friendly piece is not occupying
 // that position 

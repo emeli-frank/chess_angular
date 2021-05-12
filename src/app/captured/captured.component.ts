@@ -33,7 +33,6 @@ export class CapturedComponent implements OnInit {
   }
 
   assetName(piece: Piece): string {
-    console.warn("type", this.type);
     let colorName: string = (piece.color == Color.white) ? 'white' : 'black';
     return `/assets/images/pieces/${piece.name}-${colorName}.svg`;
   }

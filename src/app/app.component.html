@@ -14,16 +14,16 @@
   <div #board id="foo">
     <ng-container *ngFor="let cells of game.positions; let r=index">
       <ng-container *ngFor="let piece of cells; let c=index">
-        <app-cell *ngIf="piece" (click)="onPieceClicked(piece, r, c)"
+        <app-cell *ngIf="piece" (click)="onCellClick(r, c)"
           [empty]="false"
           [row]="r"
           [col]="c"
           [pieceName]="piece.name"
           [colorName]="piece.colorName"
-          [isSelected]="selected&&selected.r==r&&selected.c==c"
+          [isSelected]="game.selectedPosition&&game.selectedPosition.r==r&&game.selectedPosition.c==c"
         ></app-cell>
   
-        <div *ngIf="!piece" (click)="onEmptyCellClicked(r, c)" class="piece" style="transform:{{translate(r, c)}}"></div>
+        <div *ngIf="!piece"  (click)="onCellClick(r, c)" class="piece" style="transform:{{translate(r, c)}}"></div>
       </ng-container>
     </ng-container>
   
