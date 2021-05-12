@@ -40,7 +40,26 @@ export abstract class Piece {
   abstract getValidPositions(initialPos: Position, game: Game): Position[];
 
   // moves from one cell to another empty cell
-  abstract move(from: Position, to: Position, game: Game);
+  // abstract move(from: Position, to: Position, game: Game);
+  move(from: Position, to: Position, game: Game): boolean {
+    const lastMovedPieceId = game.getCell(from.r, from.c).id;
+
+    if (!this.canMove(from, to, game)) {
+      game.selectedPosition = null;
+      game.validMoves = [];
+
+      return false;
+    }
+
+    if (game.getCell(to.r, to.c)) {
+      game.capture(from, to);
+    } else {
+      game.switchBoardCellElemPos(from, to);
+    }
+
+    game.lastMovedPieceId = lastMovedPieceId;
+    return true;
+  }
 }
 
 export class King extends Piece {
@@ -101,7 +120,54 @@ export class King extends Piece {
       legalPos.push(testPos);
     }
 
+    // check possibility of castling right
+    let castlingPos = this.castlingLegalPos(game);
+    if (castlingPos.length > 0) {
+      legalPos.push(...castlingPos);
+    }
+
     return legalPos
+  }
+
+  castlingLegalPos(game: Game): Position[] {
+    const legalPos: Position[] = []
+    if (this.color == Color.white) {
+      let rightRook: Piece = game.getCell(7, 7);
+      if (rightRook instanceof Rook && 
+        !rightRook.hasMoved &&
+        !game.getCell(7, 6) &&
+        !game.getCell(7, 5)) {
+        legalPos.push(new Position(7, 6));
+      }
+
+      let leftRook: Piece = game.getCell(7, 0);
+      if (leftRook instanceof Rook && 
+        !leftRook.hasMoved &&
+        !game.getCell(7, 1) &&
+        !game.getCell(7, 2) &&
+        !game.getCell(7, 3)) {
+        legalPos.push(new Position(7, 2));
+      }
+    } else {
+      let rightRook: Piece = game.getCell(0, 7);
+      if (rightRook instanceof Rook && 
+        !rightRook.hasMoved &&
+        !game.getCell(0, 6) &&
+        !game.getCell(0, 5)) {
+        legalPos.push(new Position(0, 6));
+      }
+
+      let leftRook: Piece = game.getCell(0, 0);
+      if (leftRook instanceof Rook && 
+        !leftRook.hasMoved &&
+        !game.getCell(0, 1) &&
+        !game.getCell(0, 2) &&
+        !game.getCell(0, 3)) {
+        legalPos.push(new Position(0, 2));
+      }
+    }
+
+    return legalPos;
   }
 
   move(from: Position, to: Position, game: Game): boolean {
@@ -114,7 +180,42 @@ export class King extends Piece {
       return false;
     }
 
-    game.switchBoardCellElemPos(from, to);
+    // check possibility of castling right
+    const castlingPoss = this.castlingLegalPos(game);
+    for (let castlingPos of castlingPoss) {
+      if (to.isEqual(castlingPos)) {
+        // castle to the right or left
+        if (to.c == 6) { // castling to the right
+          if (this.color == Color.white) {
+            switchBoardCellElemPos(game.positions, new Position(7, 4), new Position(7, 6));
+            switchBoardCellElemPos(game.positions, new Position(7, 7), new Position(7, 5));
+            game.lastMovedPieceId = game.getCell(7, 5).id;
+            (game.getCell(7, 5) as Rook).hasMoved = true;
+          } else {
+            switchBoardCellElemPos(game.positions, new Position(0, 4), new Position(0, 6));
+            switchBoardCellElemPos(game.positions, new Position(0, 7), new Position(0, 5));
+            game.lastMovedPieceId = game.getCell(7, 5).id;
+            (game.getCell(0, 5) as Rook).hasMoved = true;
+          }
+        } else { // to.c has to be 2, castling to the left
+          if (this.color == Color.white) {
+            switchBoardCellElemPos(game.positions, new Position(7, 4), new Position(7, 2));
+            switchBoardCellElemPos(game.positions, new Position(7, 0), new Position(7, 3));
+            game.lastMovedPieceId = game.getCell(7, 3).id;
+            (game.getCell(7, 5) as Rook).hasMoved = true;
+          } else {
+            switchBoardCellElemPos(game.positions, new Position(0, 4), new Position(0, 2));
+            switchBoardCellElemPos(game.positions, new Position(0, 0), new Position(0, 3));
+            game.lastMovedPieceId = game.getCell(0, 3).id;
+            (game.getCell(0, 5) as Rook).hasMoved = true;
+          }
+        }
+        // set last peice moved to the moved rook
+        return;
+      }
+    }
+
+    game.capture(from, to);
 
     game.lastMovedPieceId = lastMovedPieceId;
     return true;
@@ -143,25 +244,11 @@ export class Queen extends Piece {
   canMove(initialPos: Position, intendedPos: Position, game: Game): boolean {
     return inPositions(this.getValidPositions(initialPos, game), intendedPos);
   }
-
-  move(from: Position, to: Position, game: Game): boolean {
-    const lastMovedPieceId = game.getCell(from.r, from.c).id;
-
-    if (!this.canMove(from, to, game)) {
-      game.selectedPosition = null;
-      game.validMoves = [];
-
-      return false;
-    }
-
-    game.switchBoardCellElemPos(from, to);
-
-    game.lastMovedPieceId = lastMovedPieceId;
-    return true;
-  }
 }
 
 export class Rook extends Piece {
+  public hasMoved: boolean = false;
+
   constructor(id: number, color: Color, startingPosition: Position) {
     super(id, color, startingPosition)
   }
@@ -230,18 +317,8 @@ export class Rook extends Piece {
   }
 
   move(from: Position, to: Position, game: Game): boolean {
-    const lastMovedPieceId = game.getCell(from.r, from.c).id;
-
-    if (!this.canMove(from, to, game)) {
-      game.selectedPosition = null;
-      game.validMoves = [];
-
-      return false;
-    }
-
-    game.switchBoardCellElemPos(from, to);
-
-    game.lastMovedPieceId = lastMovedPieceId;
+    super.move(from, to, game);
+    this.hasMoved = true;
     return true;
   }
 }
@@ -300,22 +377,6 @@ export class Knight extends Piece {
 
   canMove(initialPos: Position, intendedPos: Position, game: Game): boolean {
     return inPositions(this.getValidPositions(initialPos, game), intendedPos);
-  }
-
-  move(from: Position, to: Position, game: Game): boolean {
-    const lastMovedPieceId = game.getCell(from.r, from.c).id;
-
-    if (!this.canMove(from, to, game)) {
-      game.selectedPosition = null;
-      game.validMoves = [];
-
-      return false;
-    }
-
-    game.switchBoardCellElemPos(from, to);
-
-    game.lastMovedPieceId = lastMovedPieceId;
-    return true;
   }
 }
 
@@ -385,22 +446,6 @@ export class Bishop extends Piece {
 
   canMove(initialPos: Position, intendedPos: Position, game: Game): boolean {
     return inPositions(this.getValidPositions(initialPos, game), intendedPos);
-  }
-
-  move(from: Position, to: Position, game: Game): boolean {
-    const lastMovedPieceId = game.getCell(from.r, from.c).id;
-
-    if (!this.canMove(from, to, game)) {
-      game.selectedPosition = null;
-      game.validMoves = [];
-
-      return false;
-    }
-
-    game.switchBoardCellElemPos(from, to);
-
-    game.lastMovedPieceId = lastMovedPieceId;
-    return true;
   }
 }
 
@@ -499,28 +544,6 @@ export class Pawn extends Piece {
       }
     }
 
-    // check en passant
-    /* testPos = new Position(initialPos.r, initialPos.c - 1);
-    let pieceInPos = game.positions[testPos.c][testPos.r];
-    if (pieceInPos && withinBound(testPos) && pieceInPos instanceof Pawn && pieceInPos.id == game.lastMovedPieceId) {
-      if (this.color == Color.white) {
-        legalPos.push(new Position(testPos.r -1, testPos.c));
-      } else {
-        legalPos.push(new Position(testPos.r + 1, testPos.c));
-      }
-    }
-
-    testPos = new Position(initialPos.r, initialPos.c + 1);
-
-    pieceInPos = game.positions[testPos.r][testPos.c];
-    if (pieceInPos && withinBound(testPos) && pieceInPos instanceof Pawn && pieceInPos.id == game.lastMovedPieceId) {
-      if (this.color == Color.white) {
-        legalPos.push(new Position(testPos.r -1, testPos.c));
-      } else {
-        legalPos.push(new Position(testPos.r + 1, testPos.c));
-      }
-    } */
-
     let enPassanePos = this.enPassantPos(initialPos, game);
     if (enPassanePos) {
       legalPos.push(enPassanePos);
@@ -565,11 +588,6 @@ export class Pawn extends Piece {
   }
 
   canMove(initialPos: Position, intendedPos: Position, game: Game): boolean {
-    /* console.log("initialPos:", initialPos);
-    console.log("intendedPos:", intendedPos);
-    console.log("board:", game.positions);
-    console.log("valid positions:", this.getValidPositions(intendedPos, game));
-    console.log(this.getValidPositions(initialPos, game)); */
     return inPositions(this.getValidPositions(initialPos, game), intendedPos);
   }
 
@@ -625,7 +643,7 @@ export class Pawn extends Piece {
 
 
 
-// returns only if position is within bound and a if a friendly piece is not occupying
+// returns true only if position is within bound and a if a friendly piece is not occupying
 // that position 
 function validPos(position: Position, board: Piece[][], color: Color): boolean {
   if (!withinBound(position)) {
@@ -700,3 +718,24 @@ function switchBoardCellElemPos(board: Piece[][], pos1: Position, pos2: Position
   board[pos1.r][pos1.c] = pos2Elem;
   board[pos2.r][pos2.c] = pos1Elem;
 }
+
+/* // returns true only if there is no piece (friendly or enemy) between two positions 
+// (exclusive of the start and end positions)
+function pieceBetweenPos(pos1: Position, pos2: Position, game: Game): boolean {
+  if (pos1.r == pos2.r) { // checking horizontally
+    if (pos1.c < pos2.c) {
+      for (let i = pos1.c + 1; i < pos2.c; i++) {
+        if (game[pos1.r][i]) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+
+
+
+
+} */
